@@ -79,7 +79,7 @@ cold and desaturated so they stay in register.
 
 Wallpapers take their atmosphere from the site's own fog plates
 (`src/assets/fog1.png`, `fog2.png`) rather than synthesised noise, so the
-desktop and pagan.tr share the same mist: `1-sigil` (the logo in the fog),
+desktop and pagan.tr share the same mist: `1-logo` (the logo in the fog),
 `2-fog`, `3-pentagram` (the element at the centre of the logo, drawn large).
 
 Nothing sets the band name in type. A black metal logo *is* the wordmark and
@@ -125,6 +125,31 @@ Turn it off with `omarchy plugin disable gand.fog`, or skip it at install with
 `--no-fog`. Cost while the desktop is covered measured at 0.0% CPU: Hyprland
 withholds frame callbacks from an occluded surface, so it idles rather than
 animating behind your windows.
+
+## Wallpaper filenames must be unique across families
+
+Every theme's wallpaper resolves to the same path —
+`~/.local/state/omarchy/current/theme/backgrounds/<name>` — and Omarchy's
+background renderer loads it with `cache: true`. Qt keys its pixmap cache on
+that URL, so two themes sharing a wallpaper *basename* can serve each other's
+stale image after a theme switch.
+
+Pagan originally shipped `1-sigil.webp`, colliding with Gand's; it is now
+`1-logo.webp`. Keep basenames distinct across families:
+
+| Family | Wallpapers |
+|---|---|
+| gand | `1-sigil` `2-ring` `3-vellum` |
+| commit | `1-pulse` `2-graph` `3-crt` |
+| pagan | `1-logo` `2-fog` `3-pentagram` |
+
+Also worth knowing: `omarchy theme set` advances to the *next* wallpaper in the
+theme every time it runs, so a run of theme switches walks the selection along.
+To land on a specific one:
+
+```sh
+omarchy theme bg set ~/.local/state/omarchy/current/theme/backgrounds/1-logo.webp
+```
 
 ## Branding, and why there is a hook
 

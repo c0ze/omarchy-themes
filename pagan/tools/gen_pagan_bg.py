@@ -5,7 +5,7 @@ Atmosphere comes from the band site's own fog plates (src/assets/fog1.png,
 fog2.png) rather than synthesised noise, so the desktop and pagan.tr share the
 same mist. Three per theme:
 
-  1-sigil      the band logo in the fog
+  1-logo       the band logo in the fog
   2-fog        fog alone
   3-pentagram  the pentagram out of the logo, drawn large and faint
 
@@ -199,7 +199,7 @@ def main():
         cov = place(mask, 0.46, 0.5, 0.46)
         canvas = over(canvas, cov, ink, alpha_for_contrast(canvas, cov, ink, t["sigil"]))
         canvas += grain(t["grain"], 5)
-        save(canvas, os.path.join(d, "1-sigil.webp"))
+        save(canvas, os.path.join(d, "1-logo.webp"))
 
         canvas = base(0.62, flip=True, vignette=1.2)
         canvas = over(canvas, radial(W * 0.5, H * 0.40, W * 0.34, 2.6), accent, 0.05)
