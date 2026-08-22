@@ -16,6 +16,7 @@ cd ~/projects/gand/omarchy-themes
 | [`gand/`](gand) | [gand.tr](https://gand.tr) | Gand Dark · Gand Earth · Gand Light |
 | [`commit/`](commit) | the game *Commit!!!* | Commit Late Night · Commit Evening · Commit Morning |
 | [`pagan/`](pagan) | the band *Pagan* ([pagan.tr](https://pagan.tr)) | Pagan Dark · Pagan Light |
+| [`pagan-old/`](pagan-old) | Pagan's pre-2019 circular sigil | Pagan Old Dark · Pagan Old Light |
 
 `omarchy theme install <url>` will *not* work on this repo: it clones the whole
 repo into `~/.config/omarchy/themes/<repo-basename>` and treats it as a single
@@ -144,6 +145,28 @@ Turn it off with `omarchy plugin disable gand.fog`, or skip it at install with
 withholds frame callbacks from an occluded surface, so it idles rather than
 animating behind your windows.
 
+## Pagan Old
+
+The band's earlier mark: an inverted pentagram in a ring with PAGAN worked into
+its arms, hand-drawn. Same palette, same fog, same fastfetch panel as `pagan` —
+the era changed the mark, not the colours — so the only difference is the
+artwork. Wallpapers are `1-seal`, `2-veil`, `3-halo`; the third is the sigil
+oversized until it bleeds off the frame, since a drawn pentagram would just
+repeat what the mark already is.
+
+Both Pagan variants come out of one pair of generators via `--variant`:
+
+```sh
+pagan/tools/gen_pagan_bg.py     pagan-old/themes --variant old
+pagan/tools/gen_pagan_assets.py pagan-old/themes pagan-old/branding --variant old
+```
+
+The old sigil is drawn in ~15px hairlines on a 3307px canvas. Scaled to a
+terminal grid (30× down) or a Plymouth strip (20× down) those vanish entirely,
+so `thicken()` dilates the alpha first, solving for the radius that lands a
+stroke at about two output pixels. It pads before dilating — the mask is
+cropped to its bounding box, and dilating in place clips the ring.
+
 ## Wallpaper filenames must be unique across families
 
 Every theme's wallpaper resolves to the same path —
@@ -183,6 +206,13 @@ stays. `--no-branding` skips the whole mechanism.
 
 Both `omarchy-launch-about` and `omarchy-screensaver` read only `about.txt` and
 `screensaver.txt`, so the `families/` subdirectory is inert to them.
+
+**Never leave a backup copy inside `theme-set.d/`.** `omarchy-hook` runs *every*
+file in that directory, so a timestamped copy keeps executing after the real one
+and silently re-applies whatever routing it had — which is exactly how
+`pagan-old-*` kept resolving to `pagan`. `install.sh` sweeps any it finds. For
+the same reason the family match for `pagan-old-*` has to precede `pagan-*` in
+the case statement, or the prefix swallows it.
 
 ### The About window gotcha
 

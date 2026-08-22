@@ -1,0 +1,40 @@
+# Pagan Old — Light
+# The site's inverted theme: white ground, near-black ink, and by its own
+# design NO blue — every atmospheric token drops to grey in light mode, so
+# `accent` stays the site's monochrome #262626.
+#
+# The ANSI slots do not: a terminal needs distinguishable hues or syntax
+# highlighting collapses. They are woodcut inks — oxblood, ochre, moss, slate,
+# iron, plum — dark and desaturated enough to sit in the same register.
+
+mode = "light"
+
+accent = "#262626"
+selection = "#E0E0E0"
+muted = "#8A8A8A"
+
+background = "#FFFFFF"
+dark_background = "#F5F5F5"
+darker_background = "#E8E8E8"
+lighter_background = "#D6D6D6"
+
+foreground = "#141414"
+dark_foreground = "#666666"
+light_foreground = "#333333"
+bright_foreground = "#000000"
+
+red = "#A81E1A"
+yellow = "#786020"
+orange = "#985220"
+green = "#3D6851"
+cyan = "#2A5D6D"
+blue = "#1E5788"
+magenta = "#6A3A62"
+brown = "#573E2E"
+
+bright_red = "#C13029"
+bright_yellow = "#8E742C"
+bright_green = "#4E7D63"
+bright_cyan = "#3B7386"
+bright_blue = "#2C6DA5"
+bright_magenta = "#834A79"

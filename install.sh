@@ -96,8 +96,18 @@ for family in "${families[@]}"; do
 done
 
 # The hook is what makes the staged families reachable.
+#
+# Do NOT back the hook up in place: omarchy-hook runs *every* file in
+# theme-set.d/, so a timestamped copy alongside it keeps executing after the
+# real one and silently re-applies whatever routing it had. Sweep any that a
+# previous version of this script left behind. The hook is versioned here, so
+# there is nothing worth keeping a local copy of anyway.
 if ((want_branding)); then
-  backup "$HOME/.config/omarchy/hooks/theme-set.d/10-branding-family"
+  hook_dir="$HOME/.config/omarchy/hooks/theme-set.d"
+  if compgen -G "$hook_dir/10-branding-family.bak.*" >/dev/null; then
+    rm -f "$hook_dir"/10-branding-family.bak.*
+    echo "  removed stale hook copies that were shadowing the current one"
+  fi
   omarchy hook install theme-set "$SRC/hooks/10-branding-family" >/dev/null
   echo "hook: theme-set/10-branding-family"
 fi

@@ -21,6 +21,8 @@ root="$HOME/.config/omarchy/branding"
 case "$theme" in
 gand-*) family=gand ;;
 commit-*) family=commit ;;
+# pagan-old-* must come first: it would otherwise be swallowed by pagan-*
+pagan-old-*) family=pagan-old ;;
 pagan-*) family=pagan ;;
 *) exit 0 ;;
 esac

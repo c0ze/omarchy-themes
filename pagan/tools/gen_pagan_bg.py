@@ -9,7 +9,11 @@ same mist. Three per theme:
   2-fog        fog alone
   3-pentagram  the pentagram out of the logo, drawn large and faint
 
-    ./gen_pagan_bg.py themes/
+    ./gen_pagan_bg.py themes/                # current logo -> pagan-*
+    ./gen_pagan_bg.py themes/ --variant old  # 2019 circular sigil -> pagan-old-*
+
+Both variants share the band site's colour tokens and its fog; only the mark
+differs, which is the whole point of the "old" set.
 """
 import json, math, os, sys
 
@@ -19,8 +23,23 @@ from PIL import Image, ImageDraw
 W, H = 3840, 2160
 SITE = os.environ.get(
     "PAGAN_SITE", os.path.expanduser("~/projects/music/pagan/pagan.tr"))
-LOGO = os.path.join(SITE, "src/assets/pagan-logo.jpg")
 FOG = [os.path.join(SITE, "src/assets", f) for f in ("fog1.png", "fog2.png")]
+
+# The two marks differ in shape, so each needs its own placement. The current
+# logo is wide (1344x768) and sits as a band; the 2019 sigil is square and
+# wants to be smaller on screen or it dominates the frame.
+VARIANTS = {
+    # Wallpaper basenames must be unique across every family: each theme's
+    # wallpaper resolves to the same path, and the renderer caches by URL.
+    "current": dict(
+        logo="pagan-logo.jpg", prefix="pagan",
+        mark_h=0.46, names=("1-logo", "2-fog", "3-pentagram"), third_scale=None),
+    "old": dict(
+        logo="PAGAN-old.logo.png", prefix="pagan-old",
+        mark_h=0.64, names=("1-seal", "2-veil", "3-halo"), third_scale=1.45),
+}
+VARIANT = VARIANTS["current"]
+LOGO = os.path.join(SITE, "src/assets", VARIANT["logo"])
 
 
 def hexrgb(h):
@@ -131,7 +150,7 @@ def over(base, cov, colour, alpha):
 
 
 THEMES = {
-    "pagan-dark": dict(
+    "dark": dict(
         bg="#0A0A0A", mist="#9FB6C4", ink="#F2F2F2", accent="#25AFF4",
         # sigil/penta are target contrast ratios, not alphas.
         # Dark deliberately asks for far more than light. An equal ratio is not
@@ -140,7 +159,7 @@ THEMES = {
         # the fog lifts that ground from 37, halving the separation the mark had
         # before the fog existed. So the dark mark goes near-white instead.
         fog_alpha=0.22, sigil=6.5, penta=2.6, grain=2.2),
-    "pagan-light": dict(
+    "light": dict(
         bg="#FFFFFF", mist="#5E6B76", ink="#141414", accent="#262626",
         fog_alpha=0.34, sigil=3.4, penta=1.9, grain=1.6),
 }
@@ -159,11 +178,12 @@ def save(arr, path):
 # them an alpha channel taken from their own luminance and colour the fog
 # itself. That is the same idea as the site's `filter: invert(1)` for light
 # mode, done in the plate rather than at draw time.
-FOG_INK = {"pagan-dark": "#DCE8F0", "pagan-light": "#39424C"}
+FOG_INK = {"dark": "#DCE8F0", "light": "#39424C"}
 
 
 def write_fog_plates(out_root):
-    for name, ink in FOG_INK.items():
+    for suffix, ink in FOG_INK.items():
+        name = f"{VARIANT['prefix']}-{suffix}"
         d = os.path.join(out_root, name, "fog")
         os.makedirs(d, exist_ok=True)
         for src in FOG:
@@ -172,13 +192,13 @@ def write_fog_plates(out_root):
                                                        for i in (1, 3, 5)) + (0,))
             rgba.putalpha(plate)
             rgba.save(os.path.join(d, os.path.basename(src)))
-        profile = "fog" if name.endswith("dark") else "mist"
+        profile = "fog" if suffix == "dark" else "mist"
         # Tuned against real captures, not the site's values. pagan.tr's fog
         # sits over a small hero; scaled to a 4K wallpaper the same opacities
         # produce a wall of cloud that swallows the logo entirely (measured:
         # the mark drops from 3.72:1 to 2.28:1 at 0.55). 0.20 keeps the drift
         # while leaving the mark essentially untouched at ~3.4:1.
-        intensity = 0.14 if name.endswith("dark") else 0.20
+        intensity = 0.14 if suffix == "dark" else 0.20
         with open(os.path.join(d, "fog.json"), "w") as f:
             json.dump({"profile": profile, "intensity": intensity}, f, indent=2)
             f.write("\n")
@@ -186,12 +206,19 @@ def write_fog_plates(out_root):
 
 
 def main():
-    out_root = sys.argv[1]
+    global VARIANT, LOGO
+    args = sys.argv[1:]
+    out_root = args[0]
+    if "--variant" in args:
+        VARIANT = VARIANTS[args[args.index("--variant") + 1]]
+        LOGO = os.path.join(SITE, "src/assets", VARIANT["logo"])
+    print(f"variant: {VARIANT['prefix']} ({VARIANT['logo']})")
     mask = logo_mask()
     penta = pentagram()
     write_fog_plates(out_root)
 
-    for name, t in THEMES.items():
+    for suffix, t in THEMES.items():
+        name = f"{VARIANT['prefix']}-{suffix}"
         d = os.path.join(out_root, name, "backgrounds")
         os.makedirs(d, exist_ok=True)
         bg, mist = hexrgb(t["bg"]), hexrgb(t["mist"])
@@ -206,20 +233,26 @@ def main():
             return canvas * (1.0 - 0.55 * v[..., None]) + bg * (0.55 * v[..., None])
 
         canvas = base(0.10)
-        cov = place(mask, 0.46, 0.5, 0.46)
+        cov = place(mask, VARIANT["mark_h"], 0.5, 0.46)
         canvas = over(canvas, cov, ink, alpha_for_contrast(canvas, cov, ink, t["sigil"]))
         canvas += grain(t["grain"], 5)
-        save(canvas, os.path.join(d, "1-logo.webp"))
+        save(canvas, os.path.join(d, VARIANT["names"][0] + ".webp"))
 
         canvas = base(0.62, flip=True, vignette=1.2)
         canvas = over(canvas, radial(W * 0.5, H * 0.40, W * 0.34, 2.6), accent, 0.05)
         canvas += grain(t["grain"], 19)
-        save(canvas, os.path.join(d, "2-fog.webp"))
+        save(canvas, os.path.join(d, VARIANT["names"][1] + ".webp"))
 
         canvas = base(0.31)
-        canvas = over(canvas, penta, ink, alpha_for_contrast(canvas, penta, ink, t["penta"]))
+        if VARIANT["third_scale"]:
+            # The old mark IS a pentagram, so a drawn one would just repeat it.
+            # Oversize the sigil instead until it bleeds off the frame.
+            third = place(mask, VARIANT["mark_h"] * VARIANT["third_scale"], 0.5, 0.46)
+        else:
+            third = penta
+        canvas = over(canvas, third, ink, alpha_for_contrast(canvas, third, ink, t["penta"]))
         canvas += grain(t["grain"], 43)
-        save(canvas, os.path.join(d, "3-pentagram.webp"))
+        save(canvas, os.path.join(d, VARIANT["names"][2] + ".webp"))
 
 
 if __name__ == "__main__":
