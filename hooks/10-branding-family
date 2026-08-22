@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Swap the About/screensaver branding and the fastfetch panel to match the theme
+# family that was just applied.
+#
+# Omarchy has exactly one branding slot and one user fastfetch config, so two
+# theme families cannot both own them. This hook makes the slot follow the
+# theme: pick Commit Late Night and the About logo becomes the commit graph;
+# pick Gand Earth and it becomes the sigil. Stock themes are left alone, so
+# whatever branding was last installed stays put.
+#
+# Families are stored by install.sh under branding/families/<name>/. Both
+# omarchy-launch-about and omarchy-screensaver read only about.txt and
+# screensaver.txt, so the subdirectory is inert to them.
+
+set -uo pipefail
+
+theme=${1:-}
+root="$HOME/.config/omarchy/branding"
+
+case "$theme" in
+gand-*) family=gand ;;
+commit-*) family=commit ;;
+*) exit 0 ;;
+esac
+
+src="$root/families/$family"
+[[ -d $src ]] || exit 0
+
+if [[ -f $src/about.txt ]]; then
+  install -m 644 "$src/about.txt" "$root/about.txt"
+fi
+
+# The screensaver panel ends on a hostname line; re-centre it for this machine
+# rather than shipping one machine's name to every other one.
+if [[ -f $src/screensaver.txt ]]; then
+  field=$(LC_ALL=C.UTF-8 wc -L <"$src/screensaver.txt")
+  host=$(hostname)
+  pad=$(((field - ${#host}) / 2))
+  ((pad < 0)) && pad=0
+  {
+    head -n -1 "$src/screensaver.txt"
+    printf '%*s%s\n' "$pad" "" "$host"
+  } >"$root/screensaver.txt"
+fi
+
+if [[ -f $src/fastfetch.jsonc ]]; then
+  mkdir -p "$HOME/.config/fastfetch"
+  install -m 644 "$src/fastfetch.jsonc" "$HOME/.config/fastfetch/config.jsonc"
+fi
+
+exit 0

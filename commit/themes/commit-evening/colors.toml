@@ -1,0 +1,36 @@
+# Commit!!! — Evening
+# The other classic phosphor. Same Snazzy accents as Late Night over a warm
+# lamp-lit ground, with the game's AMBER (#FFB454 — the colour of the "!!!")
+# promoted from accent to body text.
+
+mode = "dark"
+
+accent = "#FFB454"
+selection = "#2A2214"
+muted = "#5C4A2C"
+
+background = "#12100A"
+dark_background = "#0D0B07"
+darker_background = "#080704"
+lighter_background = "#1E1910"
+
+foreground = "#FFCE86"
+dark_foreground = "#A9854E"
+light_foreground = "#FFE0AE"
+bright_foreground = "#FFF4E0"
+
+red = "#FF5C57"
+yellow = "#F3F99D"
+orange = "#FF9440"
+green = "#5AF78E"
+cyan = "#9AEDFE"
+blue = "#57C7FF"
+magenta = "#FF6AC1"
+brown = "#7A5A30"
+
+bright_red = "#FF8A85"
+bright_yellow = "#FAFFC8"
+bright_green = "#8DFFB4"
+bright_cyan = "#C4F5FF"
+bright_blue = "#8FDBFF"
+bright_magenta = "#FF9BD6"

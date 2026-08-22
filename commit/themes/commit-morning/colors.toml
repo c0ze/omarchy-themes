@@ -1,0 +1,35 @@
+# Commit!!! — Morning
+# The monitor with the curtains open: the CRT ground (#0B0F14) inverted into
+# ink on paper, Snazzy hues darkened until they carry on a light surface.
+
+mode = "light"
+
+accent = "#0F8A4B"
+selection = "#CDE6D8"
+muted = "#8797A8"
+
+background = "#EEF1F5"
+dark_background = "#E0E6ED"
+darker_background = "#D1D9E3"
+lighter_background = "#F8FAFC"
+
+foreground = "#0B0F14"
+dark_foreground = "#57687A"
+light_foreground = "#2A3949"
+bright_foreground = "#030507"
+
+red = "#C0392F"
+yellow = "#7E6E14"
+orange = "#B4621B"
+green = "#0F8A4B"
+cyan = "#12718F"
+blue = "#1A62B8"
+magenta = "#B02F7E"
+brown = "#6B4A22"
+
+bright_red = "#D9564A"
+bright_yellow = "#98861F"
+bright_green = "#199E5B"
+bright_cyan = "#1E86A6"
+bright_blue = "#2F79CE"
+bright_magenta = "#C74B95"
