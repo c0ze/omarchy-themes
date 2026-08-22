@@ -1,0 +1,37 @@
+# Pagan — Dark
+# The band site's default theme (pagan.tr, src/index.css): black metal ground
+# with icy blue accents. Neutrals and the accents are its HSL tokens converted
+# verbatim; the hues the site never defines (green, yellow, magenta) are kept
+# cold and desaturated so they do not break the register.
+
+mode = "dark"
+
+accent = "#25AFF4"
+selection = "#1F1F1F"
+muted = "#333333"
+
+background = "#0A0A0A"
+dark_background = "#070707"
+darker_background = "#030303"
+lighter_background = "#0F0F0F"
+
+foreground = "#F2F2F2"
+dark_foreground = "#999999"
+light_foreground = "#E6E6E6"
+bright_foreground = "#FFFFFF"
+
+red = "#DE443E"
+yellow = "#C4AE7F"
+orange = "#BC7A44"
+green = "#74A38A"
+cyan = "#47CFEB"
+blue = "#25AFF4"
+magenta = "#A386AD"
+brown = "#5A4A3E"
+
+bright_red = "#EF6B62"
+bright_yellow = "#DCCBA1"
+bright_green = "#96C2AB"
+bright_cyan = "#82E2F3"
+bright_blue = "#6AC9FF"
+bright_magenta = "#C1A8C9"

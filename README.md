@@ -15,6 +15,7 @@ cd ~/projects/gand/omarchy-themes
 |---|---|---|
 | [`gand/`](gand) | [gand.tr](https://gand.tr) | Gand Dark · Gand Earth · Gand Light |
 | [`commit/`](commit) | the game *Commit!!!* | Commit Late Night · Commit Evening · Commit Morning |
+| [`pagan/`](pagan) | the band *Pagan* ([pagan.tr](https://pagan.tr)) | Pagan Dark · Pagan Light |
 
 `omarchy theme install <url>` will *not* work on this repo: it clones the whole
 repo into `~/.config/omarchy/themes/<repo-basename>` and treats it as a single
@@ -59,6 +60,33 @@ drives the bar and window borders, `blue` is an ANSI slot. Collapsing them would
 make terminal blue and green identical and flatten syntax highlighting, so the
 phosphor green stays the accent while `blue` keeps the palette's own `#57C7FF`.
 
+## Pagan
+
+The band site already defines exactly two themes, so these are them. Neutrals
+and accents are its HSL tokens (`src/index.css`) converted verbatim.
+
+| Theme | background | accent | site source |
+|---|---|---|---|
+| **Pagan Dark** | `#0A0A0A` | `#25AFF4` | the default: black metal ground, icy blue |
+| **Pagan Light** | `#FFFFFF` | `#262626` | "inverted for accessibility" — and monochrome |
+
+The light theme's `accent` is grey on purpose: the site drops *every*
+atmospheric token to grey in light mode, so there is no blue to inherit. Its
+ANSI slots do carry hue, though — a terminal needs distinguishable colours or
+syntax highlighting collapses — as woodcut inks: oxblood, ochre, moss, slate,
+iron, plum. The hues neither theme defines (green, yellow, magenta) are kept
+cold and desaturated so they stay in register.
+
+Wallpapers take their atmosphere from the site's own fog plates
+(`src/assets/fog1.png`, `fog2.png`) rather than synthesised noise, so the
+desktop and pagan.tr share the same mist: `1-sigil` (the logo in the fog),
+`2-fog`, `3-pentagram` (the element at the centre of the logo, drawn large).
+
+Nothing sets the band name in type. A black metal logo *is* the wordmark and
+its illegibility is the point, so the About logo, the screensaver and the
+Plymouth strip are all the logo alone. The screensaver's one line of text is
+`IN HOC SIGNO VINCES` — the band's own first demo, 1995.
+
 ## Branding, and why there is a hook
 
 Themes from every family coexist in the theme list. Branding does not: Omarchy
@@ -84,17 +112,21 @@ sizes to solve for its cell size *and* padding (padding is a fixed offset, not a
 proportion — dividing height by rows undercounts it and clips the top), then
 writes an `o.window("org.omarchy.about", ...)` rule into `~/.config/hypr/hyprland.lua`.
 
-One rule covers both families as long as it was measured against the *widest*
-logo — Gand's is 50 columns, Commit's 45. Re-run it after changing the fastfetch
-layout, the terminal, its font, or a logo's dimensions.
+One rule covers every family as long as it was measured against the *widest*
+logo: Pagan's is 54 columns, Gand's 50, Commit's 45. So measure with a Pagan
+theme active — measuring against a narrower one clips the panel's right edge for
+the others. Re-run after changing the fastfetch layout, the terminal, its font,
+or a logo's dimensions.
 
 ## Rebuilding the art
 
-Both families face the same problem: the source artwork does not survive
+Gand and Commit face the same problem: the source artwork does not survive
 downscaling to a terminal grid. Gand's logo has gold linework too low-contrast
 to dither cleanly; the Commit icon is 256px pixel art that turns to mush. Both
 answers are the same — lift the one solid element out of the original and redraw
-everything around it as vectors.
+everything around it as vectors. Pagan needs none of that: its logo is already a
+high-contrast alpha PNG (despite the `.jpg` name), so the transcoder takes it
+directly.
 
 ```sh
 gand/tools/gen_sigil.py    /tmp/s.png    # G lifted by connected component, ring redrawn
@@ -107,10 +139,15 @@ commit/tools/gen_commit_sigil.py  graph /tmp/g.png   # mark, or mark in a commit
 commit/tools/gen_commit_assets.py commit/themes/ commit/branding/
 commit/tools/gen_commit_bg.py     commit/themes/
 commit/tools/gen_commit_fastfetch.py commit/fastfetch/config.jsonc
+
+pagan/tools/gen_pagan_assets.py   pagan/themes/ pagan/branding/
+pagan/tools/gen_pagan_bg.py       pagan/themes/
+pagan/tools/gen_pagan_fastfetch.py pagan/fastfetch/config.jsonc
 ```
 
 Gand's generators read the logo from
 `~/projects/gand/gand.tr/public/assets/gand-logo-1024.webp` (`GAND_LOGO`
-overrides); Commit's redraw the icon from scratch and need no source art. Needs
+overrides); Pagan's read the logo and fog from `~/projects/music/pagan/pagan.tr`
+(`PAGAN_SITE`); Commit's redraw the icon from scratch and need no source art. Needs
 `python-pillow`, `python-numpy` and ImageMagick. All are deterministic — a
 re-run reproduces the committed files byte for byte.
