@@ -121,6 +121,17 @@ empty input region so clicks fall through as usual. That way the stock
 background renderer keeps updating normally, and a mistake here cannot leave the
 desktop black.
 
+**Intensity is 0.20, not the site's values.** pagan.tr's fog sits over a small
+hero; scaled to a 4K wallpaper the same opacities produce a wall of cloud that
+swallows the logo. Measured against real captures, the mark falls from 3.72:1
+with no fog to 2.28:1 at 0.55 — 0.20 keeps the drift and leaves the mark at
+~3.4:1. Change it live:
+
+```sh
+$EDITOR ~/.config/omarchy/themes/pagan-dark/fog/fog.json
+omarchy-shell fog refresh
+```
+
 Turn it off with `omarchy plugin disable gand.fog`, or skip it at install with
 `--no-fog`. Cost while the desktop is covered measured at 0.0% CPU: Hyprland
 withholds frame callbacks from an occluded surface, so it idles rather than

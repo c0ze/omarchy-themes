@@ -168,7 +168,12 @@ def write_fog_plates(out_root):
             rgba.putalpha(plate)
             rgba.save(os.path.join(d, os.path.basename(src)))
         profile = "fog" if name.endswith("dark") else "mist"
-        intensity = 0.55 if name.endswith("dark") else 0.50
+        # Tuned against real captures, not the site's values. pagan.tr's fog
+        # sits over a small hero; scaled to a 4K wallpaper the same opacities
+        # produce a wall of cloud that swallows the logo entirely (measured:
+        # the mark drops from 3.72:1 to 2.28:1 at 0.55). 0.20 keeps the drift
+        # while leaving the mark essentially untouched at ~3.4:1.
+        intensity = 0.20
         with open(os.path.join(d, "fog.json"), "w") as f:
             json.dump({"profile": profile, "intensity": intensity}, f, indent=2)
             f.write("\n")
