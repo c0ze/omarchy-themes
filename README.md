@@ -121,7 +121,14 @@ empty input region so clicks fall through as usual. That way the stock
 background renderer keeps updating normally, and a mistake here cannot leave the
 desktop black.
 
-**Intensity is 0.20, not the site's values.** pagan.tr's fog sits over a small
+**Dark asks for far more mark contrast than light** (6.5:1 against 3.4:1), and
+gets less fog (0.14 against 0.20). An equal ratio is not an equal read: light
+puts a dark mark at ~105 on a ~200 ground, a wide absolute separation, while
+dark puts a mid-grey at ~139 on ~62 — and luminous fog lifts that ground from
+37, halving the separation the mark had before the fog existed. Measured on
+screen across a fog cycle, dark now holds 5.6–6.0:1 and light 3.3–3.4:1.
+
+**Fog intensity is 0.20/0.14, not the site's values.** pagan.tr's fog sits over a small
 hero; scaled to a 4K wallpaper the same opacities produce a wall of cloud that
 swallows the logo. Measured against real captures, the mark falls from 3.72:1
 with no fog to 2.28:1 at 0.55 — 0.20 keeps the drift and leaves the mark at

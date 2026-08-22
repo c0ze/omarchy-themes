@@ -133,8 +133,13 @@ def over(base, cov, colour, alpha):
 THEMES = {
     "pagan-dark": dict(
         bg="#0A0A0A", mist="#9FB6C4", ink="#F2F2F2", accent="#25AFF4",
-        # sigil/penta are target contrast ratios, not alphas
-        fog_alpha=0.22, sigil=3.4, penta=1.9, grain=2.2),
+        # sigil/penta are target contrast ratios, not alphas.
+        # Dark deliberately asks for far more than light. An equal ratio is not
+        # an equal read: light puts a dark mark at ~105 on a ~200 ground, a wide
+        # absolute separation, while dark puts a mid-grey at ~139 on ~62 -- and
+        # the fog lifts that ground from 37, halving the separation the mark had
+        # before the fog existed. So the dark mark goes near-white instead.
+        fog_alpha=0.22, sigil=6.5, penta=2.6, grain=2.2),
     "pagan-light": dict(
         bg="#FFFFFF", mist="#5E6B76", ink="#141414", accent="#262626",
         fog_alpha=0.34, sigil=3.4, penta=1.9, grain=1.6),
@@ -173,7 +178,7 @@ def write_fog_plates(out_root):
         # produce a wall of cloud that swallows the logo entirely (measured:
         # the mark drops from 3.72:1 to 2.28:1 at 0.55). 0.20 keeps the drift
         # while leaving the mark essentially untouched at ~3.4:1.
-        intensity = 0.20
+        intensity = 0.14 if name.endswith("dark") else 0.20
         with open(os.path.join(d, "fog.json"), "w") as f:
             json.dump({"profile": profile, "intensity": intensity}, f, indent=2)
             f.write("\n")
