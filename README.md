@@ -87,6 +87,45 @@ its illegibility is the point, so the About logo, the screensaver and the
 Plymouth strip are all the logo alone. The screensaver's one line of text is
 `IN HOC SIGNO VINCES` — the band's own first demo, 1995.
 
+## Animated fog
+
+Pagan's wallpapers can drift. `shell/gand.fog` is a small Quickshell plugin that
+lays slowly moving fog over the wallpaper, ported from pagan.tr's own `fog.css`
+— same plates, same timings.
+
+A theme opts in by shipping a `fog/` directory: the plates, plus a `fog.json`
+naming a profile and an intensity. Themes without one cost nothing, because the
+layer model stays empty and no animation is ever created. Only Pagan ships one
+today; drop a `fog/` into any other theme and it picks it up.
+
+```
+pagan/themes/pagan-dark/fog/{fog1.png,fog2.png,fog.json}   profile "fog",  3 layers
+pagan/themes/pagan-light/fog/{...}                          profile "mist", 2 layers
+```
+
+Two details worth keeping:
+
+- **Movement and opacity run on unrelated periods** (15s/13s against 10s/21s).
+  That beat is what reads as swirling rather than sliding — matching the periods
+  would just look like a sheet moving sideways.
+- **The light profile's plates ship pre-inverted**, so its fog is dark rather
+  than luminous. White fog over a white ground is invisible; the site solves the
+  same problem with `filter: invert(1)`, and doing it in the plate means no
+  runtime shader. The plates also carry an alpha channel taken from their own
+  luminance, so only the fog draws — an opaque plate would veil the whole frame
+  and wash the logo back out.
+
+It is **not** a fork of `omarchy.background`. It draws its own surface on
+`WlrLayer.Bottom` — above the wallpaper, below ordinary windows — masked to an
+empty input region so clicks fall through as usual. That way the stock
+background renderer keeps updating normally, and a mistake here cannot leave the
+desktop black.
+
+Turn it off with `omarchy plugin disable gand.fog`, or skip it at install with
+`--no-fog`. Cost while the desktop is covered measured at 0.0% CPU: Hyprland
+withholds frame callbacks from an occluded surface, so it idles rather than
+animating behind your windows.
+
 ## Branding, and why there is a hook
 
 Themes from every family coexist in the theme list. Branding does not: Omarchy

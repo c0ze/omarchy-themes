@@ -11,7 +11,7 @@ same mist. Three per theme:
 
     ./gen_pagan_bg.py themes/
 """
-import math, os, sys
+import json, math, os, sys
 
 import numpy as np
 from PIL import Image, ImageDraw
@@ -93,6 +93,38 @@ def grain(amount, seed):
     return np.asarray(Image.fromarray(n, mode="F").resize((W, H), Image.BILINEAR))[..., None]
 
 
+def _lum(v):
+    x = v / 255.0
+    return x / 12.92 if x <= 0.03928 else ((x + 0.055) / 1.055) ** 2.4
+
+
+def alpha_for_contrast(canvas, cov, colour, target):
+    """Alpha that lands a mark at `target` contrast against the ground it covers.
+
+    The same alpha reads very differently on light and dark grounds: lifting a
+    near-black ground moves the luminance ratio a long way, darkening a
+    near-white one barely moves it at all. So solve for the ratio instead of
+    hand-picking an alpha per theme, and the light themes stop washing out.
+    """
+    here = cov > 0.5
+    if not here.any():
+        return 0.5
+    ground = float(np.median(canvas[here].reshape(-1, 3) @ [0.2126, 0.7152, 0.0722]))
+    ink = float(colour @ [0.2126, 0.7152, 0.0722])
+
+    lo, hi = 0.0, 1.0
+    for _ in range(40):
+        a = (lo + hi) / 2
+        mix = ground * (1 - a) + ink * a
+        lg, lm = _lum(ground), _lum(mix)
+        ratio = (max(lg, lm) + 0.05) / (min(lg, lm) + 0.05)
+        if ratio < target:
+            lo = a
+        else:
+            hi = a
+    return (lo + hi) / 2
+
+
 def over(base, cov, colour, alpha):
     a = (cov * alpha)[..., None]
     return base * (1.0 - a) + colour * a
@@ -101,10 +133,11 @@ def over(base, cov, colour, alpha):
 THEMES = {
     "pagan-dark": dict(
         bg="#0A0A0A", mist="#9FB6C4", ink="#F2F2F2", accent="#25AFF4",
-        fog_alpha=0.22, sigil=0.38, penta=0.18, grain=2.2),
+        # sigil/penta are target contrast ratios, not alphas
+        fog_alpha=0.22, sigil=3.4, penta=1.9, grain=2.2),
     "pagan-light": dict(
         bg="#FFFFFF", mist="#5E6B76", ink="#141414", accent="#262626",
-        fog_alpha=0.34, sigil=0.30, penta=0.16, grain=1.6),
+        fog_alpha=0.34, sigil=3.4, penta=1.9, grain=1.6),
 }
 
 
@@ -114,10 +147,39 @@ def save(arr, path):
     print("  ->", os.path.basename(path), f"{os.path.getsize(path)//1024}K")
 
 
+# Fog plates for the animated background (see the shell plugin under shell/).
+# The site's plates are opaque black-and-white, which works there because they
+# sit on a black hero. Composited over a wallpaper they would veil the whole
+# frame -- and on the light theme that would wash the logo back out -- so give
+# them an alpha channel taken from their own luminance and colour the fog
+# itself. That is the same idea as the site's `filter: invert(1)` for light
+# mode, done in the plate rather than at draw time.
+FOG_INK = {"pagan-dark": "#DCE8F0", "pagan-light": "#39424C"}
+
+
+def write_fog_plates(out_root):
+    for name, ink in FOG_INK.items():
+        d = os.path.join(out_root, name, "fog")
+        os.makedirs(d, exist_ok=True)
+        for src in FOG:
+            plate = Image.open(src).convert("L")
+            rgba = Image.new("RGBA", plate.size, tuple(int(ink[i:i + 2], 16)
+                                                       for i in (1, 3, 5)) + (0,))
+            rgba.putalpha(plate)
+            rgba.save(os.path.join(d, os.path.basename(src)))
+        profile = "fog" if name.endswith("dark") else "mist"
+        intensity = 0.55 if name.endswith("dark") else 0.50
+        with open(os.path.join(d, "fog.json"), "w") as f:
+            json.dump({"profile": profile, "intensity": intensity}, f, indent=2)
+            f.write("\n")
+        print(f"  -> {name}/fog ({profile})")
+
+
 def main():
     out_root = sys.argv[1]
     mask = logo_mask()
     penta = pentagram()
+    write_fog_plates(out_root)
 
     for name, t in THEMES.items():
         d = os.path.join(out_root, name, "backgrounds")
@@ -134,7 +196,8 @@ def main():
             return canvas * (1.0 - 0.55 * v[..., None]) + bg * (0.55 * v[..., None])
 
         canvas = base(0.10)
-        canvas = over(canvas, place(mask, 0.46, 0.5, 0.46), ink, t["sigil"])
+        cov = place(mask, 0.46, 0.5, 0.46)
+        canvas = over(canvas, cov, ink, alpha_for_contrast(canvas, cov, ink, t["sigil"]))
         canvas += grain(t["grain"], 5)
         save(canvas, os.path.join(d, "1-sigil.webp"))
 
@@ -144,7 +207,7 @@ def main():
         save(canvas, os.path.join(d, "2-fog.webp"))
 
         canvas = base(0.31)
-        canvas = over(canvas, penta, ink, t["penta"])
+        canvas = over(canvas, penta, ink, alpha_for_contrast(canvas, penta, ink, t["penta"]))
         canvas += grain(t["grain"], 43)
         save(canvas, os.path.join(d, "3-pentagram.webp"))
 
