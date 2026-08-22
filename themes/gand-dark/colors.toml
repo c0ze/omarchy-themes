@@ -1,0 +1,35 @@
+# Gand — Dark
+# Derived from gand.tr's OLED theme: ink-black night, bronze staff (gandr),
+# patina sage, and balbal stone grey.
+
+mode = "dark"
+
+accent = "#d49a64"
+selection = "#2b241b"
+muted = "#4d473e"
+
+background = "#0c0c0e"
+dark_background = "#08080a"
+darker_background = "#040405"
+lighter_background = "#18181c"
+
+foreground = "#d0ccc2"
+dark_foreground = "#8a857a"
+light_foreground = "#e2ded4"
+bright_foreground = "#f5f1e9"
+
+red = "#cc6152"
+yellow = "#d2ac63"
+orange = "#d4823f"
+green = "#84b09c"
+cyan = "#7e909d"
+blue = "#d49a64"
+magenta = "#ab8ca4"
+brown = "#5e4a32"
+
+bright_red = "#e58974"
+bright_yellow = "#eccf8c"
+bright_green = "#a3c9b6"
+bright_cyan = "#9fb0bd"
+bright_blue = "#e7bb8d"
+bright_magenta = "#c8adc0"

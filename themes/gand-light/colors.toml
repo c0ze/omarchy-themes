@@ -1,0 +1,34 @@
+# Gand — Light
+# gand.tr's warm vellum theme: dark ink and burnt umber on unbleached paper.
+
+mode = "light"
+
+accent = "#7a4f30"
+selection = "#ded4c2"
+muted = "#9a9082"
+
+background = "#f0ebe1"
+dark_background = "#e6e0d4"
+darker_background = "#d9d2c3"
+lighter_background = "#f5f1e8"
+
+foreground = "#2e2a23"
+dark_foreground = "#6b6258"
+light_foreground = "#4a4339"
+bright_foreground = "#16140f"
+
+red = "#9e3a2b"
+yellow = "#836218"
+orange = "#9c561b"
+green = "#3d6052"
+cyan = "#4a5c69"
+blue = "#7a4f30"
+magenta = "#754566"
+brown = "#5c3d22"
+
+bright_red = "#b84934"
+bright_yellow = "#9a7622"
+bright_green = "#4b7261"
+bright_cyan = "#5a6f7e"
+bright_blue = "#93613b"
+bright_magenta = "#8a5379"
