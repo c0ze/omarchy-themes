@@ -19,6 +19,11 @@ import qs.Commons
 //   spin   plates rotate about the screen centre at different rates and in
 //          opposing directions. Gand's orrery: its mark is an astronomical
 //          device, so its rings turn rather than drift.
+//   sweep  a plate translates across a bounded span and reverses. Commit's
+//          Pulse cursor, which pulse_screen.gd describes as ping-ponging
+//          across the bar. The plate shares the wallpapers' 16:9 geometry and
+//          renders the same way, so the cursor tracks the bar baked into
+//          1-pulse rather than floating free of it.
 //
 // This is a plugin of its own rather than a fork of omarchy.background, so the
 // stock renderer keeps updating normally and a mistake here cannot leave the
@@ -50,6 +55,14 @@ Item {
     },
     // Periods are minutes, not seconds. An orrery that visibly turns is a
     // fidget; this should only be noticeable if you sit and watch it.
+    "pulse": {
+      kind: "sweep",
+      // span is the fraction of the displayed wallpaper width to cross: the
+      // bar occupies the middle 0.66, matching gen_commit_bg.py.
+      layers: [
+        { plate: 0, span: 0.66, period: 18000, cycle: 90000, stops: [0.85, 1.0, 0.85], at: [0, 0.4, 0.7] }
+      ]
+    },
     "orrery": {
       kind: "spin",
       layers: [
@@ -205,15 +218,21 @@ Item {
             // property over as a value source even while stopped, which would
             // destroy the centring binding that spin layers need.
             property real driftX: 0
+            // A separate property per motion: QML allows only one value source
+            // per property, so drift and sweep cannot both animate driftX.
+            property real sweepX: 0
 
             readonly property bool drift: modelData.kind === "drift"
+            readonly property bool sweep: modelData.kind === "sweep"
+            readonly property bool flat: drift || sweep
 
             // Drift lays two copies side by side and slides one width; spin
             // squares up on the screen centre and turns.
-            width: drift ? panel.width * 2 : panel.side * (modelData.scale || 1)
-            height: drift ? panel.height : width
-            x: drift ? driftX : (panel.width - width) / 2
-            y: drift ? 0 : (panel.height - height) / 2
+            width: flat ? (drift ? panel.width * 2 : panel.width)
+                        : panel.side * (modelData.scale || 1)
+            height: flat ? panel.height : width
+            x: drift ? driftX : (sweep ? sweepX : (panel.width - width) / 2)
+            y: flat ? 0 : (panel.height - height) / 2
 
             opacity: root.opacityAt(modelData.stops, modelData.at,
                                     (cyclePhase + modelData.phase) % 1)
@@ -221,15 +240,15 @@ Item {
             transform: Rotation {
               origin.x: layer.width / 2
               origin.y: layer.height / 2
-              angle: layer.drift ? 0 : layer.spin
+              angle: layer.flat ? 0 : layer.spin
             }
 
             Image {
               x: 0
-              width: layer.drift ? panel.width : layer.width
-              height: layer.drift ? panel.height : layer.height
+              width: layer.flat ? panel.width : layer.width
+              height: layer.flat ? panel.height : layer.height
               source: layer.modelData.src
-              fillMode: layer.drift ? Image.PreserveAspectCrop : Image.PreserveAspectFit
+              fillMode: layer.flat ? Image.PreserveAspectCrop : Image.PreserveAspectFit
               asynchronous: true
               cache: true
               smooth: true
@@ -258,6 +277,25 @@ Item {
               to: -panel.width
               duration: layer.modelData.move || 1
               easing.type: Easing.Linear
+            }
+
+            // Ping-pong, not a wrap: the cursor reverses at each end of the
+            // bar exactly as it does in game.
+            SequentialAnimation on sweepX {
+              running: panel.visible && layer.sweep
+              loops: Animation.Infinite
+              NumberAnimation {
+                from: 0
+                to: panel.width * (layer.modelData.span || 1)
+                duration: (layer.modelData.period || 2) / 2
+                easing.type: Easing.InOutSine
+              }
+              NumberAnimation {
+                from: panel.width * (layer.modelData.span || 1)
+                to: 0
+                duration: (layer.modelData.period || 2) / 2
+                easing.type: Easing.InOutSine
+              }
             }
 
             NumberAnimation on spin {

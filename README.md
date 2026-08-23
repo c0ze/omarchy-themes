@@ -102,6 +102,7 @@ Two kinds of motion, because the two families want different things:
 | `fog` | drift, 3 layers | Pagan Dark |
 | `mist` | drift, 2 layers, inverted plates | Pagan Light |
 | `orrery` | spin, 3 rings | all three Gand themes |
+| `pulse` | sweep, 1 cursor | all three Commit themes |
 
 **drift** slides two copies of each plate sideways by exactly one copy width, so
 the wrap is seamless. Ported from pagan.tr's `fog.css`: movement and opacity run
@@ -117,7 +118,17 @@ crescents at the poles. Periods are 7, 5 and 9 minutes per revolution. An orrery
 that visibly turns is a fidget; this should only be noticeable if you sit and
 watch it.
 
-Both are tunable live, without touching QML:
+**sweep** translates a plate across a bounded span and reverses.
+`pulse_screen.gd` opens by describing the game's core interaction as "a cursor
+ping-pongs across a colored bar", so that is what the Commit backdrop is. The
+plate holds only the cursor, drawn on a canvas with the same 16:9 geometry the
+wallpapers use and rendered the same way, so on `1-pulse` it tracks the real bar
+it was drawn against rather than floating free of it. The bar's baked-in static
+cursor was removed once the live one existed — two cursors on one bar read as a
+mistake. A full there-and-back is 18s: the game's cursor is frantic by design,
+and a backdrop that frantic would be unusable.
+
+All three are tunable live, without touching QML:
 
 ```sh
 $EDITOR ~/.config/omarchy/themes/gand-earth/backdrop/backdrop.json

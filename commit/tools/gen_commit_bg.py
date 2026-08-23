@@ -96,16 +96,19 @@ def pulse_lattice(d, w, h):
 
 
 def pulse_bar(d, w, h):
-    """The Pulse Bar frame: the outline plus the stop cursor."""
+    """The Pulse Bar frame.
+
+    No cursor: the backdrop plugin sweeps a live one across this bar, and a
+    baked one would sit alongside it as a second, motionless cursor. Without
+    the plugin the bar still reads as the game's zone track.
+    """
     bw, bh = int(w * 0.66), int(h * 0.075)
     x0, y0 = (w - bw) // 2, int(h * 0.46)
     edge = max(2, int(w * 0.0016))
     pad = int(h * 0.008)
     d.rectangle([x0 - pad, y0 - pad, x0 + bw + pad, y0 + bh + pad],
                 outline=255, width=edge)
-    cx = x0 + int(bw * 0.615)
-    d.rectangle([cx - edge, y0 - int(h * 0.022), cx + edge, y0 + bh + int(h * 0.022)],
-                fill=255)
+
 
 
 def pulse_zones():
