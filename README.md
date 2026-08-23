@@ -3,6 +3,10 @@
 [Omarchy](https://omarchy.org/) theme families, each derived from one of my own
 projects: colours, wallpapers, the About panel and the screensaver.
 
+[![Watch the demo: ten Omarchy themes](https://img.youtube.com/vi/2rXn40bUuC8/maxresdefault.jpg)](https://youtu.be/2rXn40bUuC8)
+
+*Every theme for fifteen seconds, plus each family's About panel and screensaver — [3m33s](https://youtu.be/2rXn40bUuC8). There is a [write-up of how it was built](https://blog.arda.tr/blog/2026-08-23-ten-omarchy-themes/) too.*
+
 ```sh
 git clone git@github.com:c0ze/omarchy-themes.git ~/projects/gand/omarchy-themes
 cd ~/projects/gand/omarchy-themes
@@ -22,6 +26,13 @@ cd ~/projects/gand/omarchy-themes
 repo into `~/.config/omarchy/themes/<repo-basename>` and treats it as a single
 theme. That command wants one repo per theme with `colors.toml` at the root; use
 `install.sh`.
+
+That is also why none of these are on
+[omarchy.org/themes](https://omarchy.org/themes) yet. Every theme in that
+directory is its own repository, because that is the unit the installer
+understands. Each family directory here already has the right shape — a theme
+folder with `colors.toml`, `backgrounds/`, `icons.theme` and `neovim.lua` — it
+just sits one level down. Splitting any of them out is a copy, not a rewrite.
 
 ## Gand
 
