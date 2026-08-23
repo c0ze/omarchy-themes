@@ -163,20 +163,31 @@ def main():
         canvas = layer(canvas, draw(pulse_lattice), dim, 0.40 * t["art"])
         canvas = layer(canvas, draw(pulse_bar), ink, 0.42 * t["art"])
         canvas = canvas * scanlines(t["scan"]) + grain(t["grain"], 3)
-        save(canvas, os.path.join(d, "1-pulse.webp"))
+        save(canvas, os.path.join(d, wp("1-pulse", name, "commit")))
 
         # 2 - graph
         canvas = ground(t, W * 0.30, H * 0.45, W * 1.00, 1.15)
         canvas = layer(canvas, draw(commit_graph), dim, 0.55 * t["art"])
         canvas = canvas * scanlines(t["scan"]) + grain(t["grain"], 17)
-        save(canvas, os.path.join(d, "2-graph.webp"))
+        save(canvas, os.path.join(d, wp("2-graph", name, "commit")))
 
         # 3 - crt
         canvas = ground(t, W * 0.5, H * 0.40, W * 0.80, 1.7)
         canvas = layer(canvas, radial(W * 0.5, H * 0.42, W * 0.30, 2.4), ink,
                        0.05 * t["art"])
         canvas = canvas * scanlines(t["scan"]) + grain(t["grain"] * 1.4, 41)
-        save(canvas, os.path.join(d, "3-crt.webp"))
+        save(canvas, os.path.join(d, wp("3-crt", name, "commit")))
+
+
+# Wallpaper basenames are unique per THEME, not just per family, for two
+# reasons. Qt caches the background by URL and every theme resolves to the same
+# path, so shared basenames let one theme serve another's stale image. And
+# omarchy-theme-set picks the background *after* the current one: when the new
+# theme has no file matching the old link it falls back to the first, so unique
+# names make a theme switch land on the signature wallpaper instead of walking
+# one step further into the set each time.
+def wp(name, theme, family):
+    return f"{name}-{theme[len(family) + 1:]}.webp"
 
 
 def save(arr, path):

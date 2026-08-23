@@ -97,6 +97,17 @@ def place(alpha_small, size, cx, cy):
     plane[y0:y1, x0:x1] = alpha_small[sy0:sy0 + (y1 - y0), sx0:sx0 + (x1 - x0)]
     return plane
 
+# Wallpaper basenames are unique per THEME, not just per family, for two
+# reasons. Qt caches the background by URL and every theme resolves to the same
+# path, so shared basenames let one theme serve another's stale image. And
+# omarchy-theme-set picks the background *after* the current one: when the new
+# theme has no file matching the old link it falls back to the first, so unique
+# names make a theme switch land on the signature wallpaper instead of walking
+# one step further into the set each time.
+def wp(name, theme, family):
+    return f"{name}-{theme[len(family) + 1:]}.webp"
+
+
 def save(arr, path):
     img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGB")
     img.save(path, "WEBP", quality=92, method=6)
@@ -136,7 +147,7 @@ for name, t in THEMES.items():
     cov = place(mask_scaled((s, s)), (s, s), W * 0.5, H * 0.47)
     canvas = over(canvas, ink, cov * alpha_for_contrast(canvas, cov, ink, t["sigil"]))
     canvas += grain(t["grain"], 11)
-    save(canvas, os.path.join(d, "1-sigil.webp"))
+    save(canvas, os.path.join(d, wp("1-sigil", name, "gand")))
 
     # 2 - ring: the celestial ring alone (centre punched out), bleeding off-canvas
     g = radial(W * 0.28, H * 0.72, W * 1.0, 1.15)
@@ -151,7 +162,7 @@ for name, t in THEMES.items():
     cov2 = place(ring2, (s2, s2), W * 0.13, H * 0.95)
     canvas = over(canvas, stone, cov2 * alpha_for_contrast(canvas, cov2, stone, t["ring"] * 0.9))
     canvas += grain(t["grain"], 23)
-    save(canvas, os.path.join(d, "2-ring.webp"))
+    save(canvas, os.path.join(d, wp("2-ring", name, "gand")))
 
     # 3 - vellum: quiet texture only, no mark
     g = radial(W * 0.5, H * 0.38, W * 0.85, 1.6)
@@ -160,4 +171,4 @@ for name, t in THEMES.items():
     y = np.linspace(0.0, 1.0, H)[:, None, None]
     canvas = canvas * (1.0 - 0.06 * y) + edge * (0.06 * y)
     canvas += grain(t["grain"] * 1.5, 37)
-    save(canvas, os.path.join(d, "3-vellum.webp"))
+    save(canvas, os.path.join(d, wp("3-vellum", name, "gand")))

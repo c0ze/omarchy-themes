@@ -167,30 +167,36 @@ so `thicken()` dilates the alpha first, solving for the radius that lands a
 stroke at about two output pixels. It pads before dilating — the mask is
 cropped to its bounding box, and dilating in place clips the ring.
 
-## Wallpaper filenames must be unique across families
+## Wallpaper selection, and why filenames carry the theme
 
-Every theme's wallpaper resolves to the same path —
-`~/.local/state/omarchy/current/theme/backgrounds/<name>` — and Omarchy's
-background renderer loads it with `cache: true`. Qt keys its pixmap cache on
-that URL, so two themes sharing a wallpaper *basename* can serve each other's
-stale image after a theme switch.
+Setting a theme *does* change the wallpaper — but not to the theme's first one.
+`omarchy-theme-set` picks the background **after** whichever is currently
+linked, and only falls back to the first when nothing in the new theme matches
+the old link:
 
-Pagan originally shipped `1-sigil.webp`, colliding with Gand's; it is now
-`1-logo.webp`. Keep basenames distinct across families:
+```bash
+if (( index == -1 )); then CHOSEN_THEME_BACKGROUND="${backgrounds[0]}"
+else next_index=$(((index + 1) % ${#backgrounds[@]}))
+```
 
-| Family | Wallpapers |
-|---|---|
-| gand | `1-sigil` `2-ring` `3-vellum` |
-| commit | `1-pulse` `2-graph` `3-crt` |
-| pagan | `1-logo` `2-fog` `3-pentagram` |
+That comparison is against the resolved path, and every theme's wallpapers live
+at the same path — `~/.local/state/omarchy/current/theme/backgrounds/<name>`.
+So while sibling themes shared basenames, switching dark→light always *advanced*
+one step, landing you on a wallpaper without the mark two times in three.
 
-Also worth knowing: `omarchy theme set` advances to the *next* wallpaper in the
-theme every time it runs, so a run of theme switches walks the selection along.
-To land on a specific one:
+Basenames therefore carry the theme: `1-seal-dark.webp`, `1-seal-light.webp`.
+Nothing matches across themes, `index` comes back -1, and a theme switch lands
+on `backgrounds[0]` — the `1-` mark wallpaper. Re-applying the *same* theme
+still advances, which is a reasonable way to cycle, as is `omarchy theme bg
+next`. To pin one:
 
 ```sh
-omarchy theme bg set ~/.local/state/omarchy/current/theme/backgrounds/1-logo.webp
+omarchy theme bg set ~/.local/state/omarchy/current/theme/backgrounds/1-seal-dark.webp
 ```
+
+The same uniqueness closes a second hazard: Qt caches the background by URL, and
+with a shared path plus a shared basename one theme could serve another's stale
+image.
 
 ## Branding, and why there is a hook
 

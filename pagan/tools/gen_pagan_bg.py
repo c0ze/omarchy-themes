@@ -29,8 +29,8 @@ FOG = [os.path.join(SITE, "src/assets", f) for f in ("fog1.png", "fog2.png")]
 # logo is wide (1344x768) and sits as a band; the 2019 sigil is square and
 # wants to be smaller on screen or it dominates the frame.
 VARIANTS = {
-    # Wallpaper basenames must be unique across every family: each theme's
-    # wallpaper resolves to the same path, and the renderer caches by URL.
+    # Basenames get a per-theme suffix appended at save time -- see the note in
+    # main(). Unique per theme, not just per family.
     "current": dict(
         logo="pagan-logo.jpg", prefix="pagan",
         mark_h=0.46, names=("1-logo", "2-fog", "3-pentagram"), third_scale=None),
@@ -236,12 +236,12 @@ def main():
         cov = place(mask, VARIANT["mark_h"], 0.5, 0.46)
         canvas = over(canvas, cov, ink, alpha_for_contrast(canvas, cov, ink, t["sigil"]))
         canvas += grain(t["grain"], 5)
-        save(canvas, os.path.join(d, VARIANT["names"][0] + ".webp"))
+        save(canvas, os.path.join(d, f'{VARIANT["names"][0]}-{suffix}.webp'))
 
         canvas = base(0.62, flip=True, vignette=1.2)
         canvas = over(canvas, radial(W * 0.5, H * 0.40, W * 0.34, 2.6), accent, 0.05)
         canvas += grain(t["grain"], 19)
-        save(canvas, os.path.join(d, VARIANT["names"][1] + ".webp"))
+        save(canvas, os.path.join(d, f'{VARIANT["names"][1]}-{suffix}.webp'))
 
         canvas = base(0.31)
         if VARIANT["third_scale"]:
@@ -252,7 +252,7 @@ def main():
             third = penta
         canvas = over(canvas, third, ink, alpha_for_contrast(canvas, third, ink, t["penta"]))
         canvas += grain(t["grain"], 43)
-        save(canvas, os.path.join(d, VARIANT["names"][2] + ".webp"))
+        save(canvas, os.path.join(d, f'{VARIANT["names"][2]}-{suffix}.webp'))
 
 
 if __name__ == "__main__":
