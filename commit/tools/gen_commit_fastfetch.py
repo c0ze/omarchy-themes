@@ -51,8 +51,15 @@ def main():
         elif isinstance(m, dict) and "keyColor" in m and colour:
             m["keyColor"] = colour
 
-    cfg["modules"].append({"type": "custom",
-                           "format": ESC + "[90m" + " " * ((54 - len(TAGLINE)) // 2) + TAGLINE})
+    def footer(text, colour="90"):
+        """One centred line in the 54-wide box the section headers use."""
+        return {"type": "custom",
+                "format": ESC + "[" + colour + "m"
+                          + " " * max(0, (54 - len(text)) // 2) + text}
+
+    cfg["modules"].append(footer(TAGLINE))
+    cfg["modules"].append(footer("commit.gand.tr", "32"))
+    cfg["modules"].append(footer("Out now on Steam and Google Play", "90"))
     cfg["modules"].append("break")
 
     os.makedirs(os.path.dirname(out), exist_ok=True)

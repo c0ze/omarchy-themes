@@ -167,6 +167,14 @@
       "type": "custom",
       "format": "\u001b[90m       Push code. Pull requests. Merge a life."
     },
+    {
+      "type": "custom",
+      "format": "\u001b[32m                    commit.gand.tr"
+    },
+    {
+      "type": "custom",
+      "format": "\u001b[90m           Out now on Steam and Google Play"
+    },
     "break"
   ]
 }

@@ -167,6 +167,10 @@
       "type": "custom",
       "format": "\u001b[90m                 In Hoc Signo Vinces"
     },
+    {
+      "type": "custom",
+      "format": "\u001b[34m                       pagan.tr"
+    },
     "break"
   ]
 }

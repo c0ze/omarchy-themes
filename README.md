@@ -13,10 +13,10 @@ cd ~/projects/gand/omarchy-themes
 
 | Family | Source | Themes |
 |---|---|---|
-| [`gand/`](gand) | [gand.tr](https://gand.tr) | Gand Dark · Gand Earth · Gand Light |
-| [`commit/`](commit) | the game *Commit!!!* | Commit Late Night · Commit Evening · Commit Morning |
-| [`pagan/`](pagan) | the band *Pagan* ([pagan.tr](https://pagan.tr)) | Pagan Dark · Pagan Light |
-| [`pagan-old/`](pagan-old) | Pagan's pre-2019 circular sigil | Pagan Old Dark · Pagan Old Light |
+| [`gand/`](gand) | [gand.tr](https://gand.tr) — the studio | Gand Dark · Gand Earth · Gand Light |
+| [`commit/`](commit) | [commit.gand.tr](https://commit.gand.tr) — the game | Commit Late Night · Commit Evening · Commit Morning |
+| [`pagan/`](pagan) | [pagan.tr](https://pagan.tr) — the band | Pagan Dark · Pagan Light |
+| [`pagan-old/`](pagan-old) | Pagan's pre-2019 sigil | Pagan Old Dark · Pagan Old Light |
 
 `omarchy theme install <url>` will *not* work on this repo: it clones the whole
 repo into `~/.config/omarchy/themes/<repo-basename>` and treats it as a single
@@ -24,6 +24,11 @@ theme. That command wants one repo per theme with `colors.toml` at the root; use
 `install.sh`.
 
 ## Gand
+
+**[gand.tr](https://gand.tr)** — an independent software studio between Istanbul
+and Tokyo, building small focused products: [Skriv.ist](https://skriv.ist/),
+[Fable Spun Kids](https://kids.fable.tr/), [Vigil Today](https://vigil.today/),
+[SUDONE](https://sudone.jp/). Source on [GitHub](https://github.com/gandtr).
 
 Mapped 1:1 to the three themes on the site.
 
@@ -39,6 +44,13 @@ ember red and heather magenta the site does not define. Every colour clears
 3.4:1 on its background. Wallpapers: `1-sigil`, `2-ring`, `3-vellum`.
 
 ## Commit!!!
+
+**[commit.gand.tr](https://commit.gand.tr)** — a software-career sim: push code,
+pull requests, merge a life. Built in Godot 4 for Windows, Linux and Android.
+Pay once, no ads, no accounts, works offline.
+
+**Out now** on **[Steam](https://store.steampowered.com/app/4994630/)** and
+**[Google Play](https://play.google.com/store/apps/details?id=tr.gand.commit)**.
 
 The game ships a fully specified CRT palette in `commit/game/theme/palette.gd`,
 with WCAG ratios worked out in its comments. **Late Night is that palette
@@ -62,6 +74,13 @@ make terminal blue and green identical and flatten syntax highlighting, so the
 phosphor green stays the accent while `blue` keeps the palette's own `#57C7FF`.
 
 ## Pagan
+
+**[pagan.tr](https://pagan.tr)** — Turkish black metal from Istanbul, exploring
+paganism, shamanism and mysticism since 1995.
+[Bandcamp](https://pagantr.bandcamp.com) ·
+[Spotify](https://open.spotify.com/artist/4MoLQW8VHxjNk2vPxkpLqF) ·
+[YouTube](https://www.youtube.com/@pagantr) ·
+[Metal Archives](https://www.metal-archives.com/bands/Pagan/4260)
 
 The band site already defines exactly two themes, so these are them. Neutrals
 and accents are its HSL tokens (`src/index.css`) converted verbatim.
@@ -155,6 +174,8 @@ Two things that bit, both worth keeping in mind when editing the QML:
   became `.speed // 1` unquoted and fell back on every read.
 
 ## Pagan Old
+
+**[pagan.tr](https://pagan.tr)** — the same band, its earlier mark.
 
 The band's earlier mark: an inverted pentagram in a ring with PAGAN worked into
 its arms, hand-drawn. Same palette, same fog, same fastfetch panel as `pagan` —

@@ -58,15 +58,46 @@ probe() {
 # Mirrors omarchy-launch-about: 2 columns of padding, the logo, 6 columns of
 # gutter, the modules, 2 more columns; rows are the taller of logo+2 or the
 # module block, plus a row for the cursor.
-logo_w=$(LC_ALL=C.UTF-8 wc -L <"$LOGO")
-logo_h=$(wc -l <"$LOGO")
-modules=$(fastfetch --logo none | sed 's/\x1b\[[0-9;?]*[a-zA-Z]//g')
-module_w=$(printf '%s' "$modules" | LC_ALL=C.UTF-8 wc -L)
-module_h=$(printf '%s\n' "$modules" | wc -l)
+#
+# One window serves every family, and the theme-set hook swaps which one is
+# live -- so measure them ALL and take the widest and the tallest. Sizing to
+# whichever happens to be active clips the others: Pagan has the widest logo
+# (54 columns), Commit the tallest panel (it carries two store lines).
+target_c=0
+target_r=0
 
-target_c=$((2 + logo_w + 6 + module_w + 2))
-target_r=$(((logo_h + 2 > module_h ? logo_h + 2 : module_h) + 1))
-echo "content: ${target_c}x${target_r} cells (logo ${logo_w}x${logo_h}, modules ${module_w}x${module_h})"
+consider() {
+  local logo="$1" config="$2" label="$3"
+  [[ -f $logo ]] || return 0
+  local logo_w logo_h modules module_w module_h c r
+  logo_w=$(LC_ALL=C.UTF-8 wc -L <"$logo")
+  logo_h=$(wc -l <"$logo")
+  if [[ -f $config ]]; then
+    modules=$(fastfetch --logo none --config "$config" | sed 's/\x1b\[[0-9;?]*[a-zA-Z]//g')
+  else
+    modules=$(fastfetch --logo none | sed 's/\x1b\[[0-9;?]*[a-zA-Z]//g')
+  fi
+  module_w=$(printf '%s' "$modules" | LC_ALL=C.UTF-8 wc -L)
+  module_h=$(printf '%s\n' "$modules" | wc -l)
+  c=$((2 + logo_w + 6 + module_w + 2))
+  r=$(((logo_h + 2 > module_h ? logo_h + 2 : module_h) + 1))
+  printf '  %-12s %sx%s cells (logo %sx%s)\n' "$label" "$c" "$r" "$logo_w" "$logo_h"
+  ((c > target_c)) && target_c=$c
+  ((r > target_r)) && target_r=$r
+  return 0
+}
+
+families="$HOME/.config/omarchy/branding/families"
+if compgen -G "$families/*/about.txt" >/dev/null; then
+  echo "content, across every staged family:"
+  for dir in "$families"/*/; do
+    consider "$dir/about.txt" "$dir/fastfetch.jsonc" "$(basename "$dir")"
+  done
+else
+  echo "content (live branding only):"
+  consider "$LOGO" "$CONFIG" "live"
+fi
+echo "worst case: ${target_c}x${target_r} cells"
 
 # --- solve the terminal's cell size and padding ------------------------------
 read -r r1 c1 <<<"$(probe 1200 700)"

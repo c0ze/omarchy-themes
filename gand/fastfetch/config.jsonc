@@ -167,6 +167,10 @@
       "type": "custom",
       "format": "\u001b[90m                Craft. Culture. Code."
     },
+    {
+      "type": "custom",
+      "format": "\u001b[34m                       gand.tr"
+    },
     "break"
   ]
 }

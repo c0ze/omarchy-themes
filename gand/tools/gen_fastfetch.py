@@ -5,7 +5,7 @@ Only the section headers, key colors, logo color and a tagline change; every
 module, icon and box width is taken verbatim from the stock config so the
 About window still fits its content.
 """
-import json, os, re
+import json, os, re, sys
 
 STOCK = os.path.join(os.environ.get("OMARCHY_PATH",
                      os.path.expanduser("~/.local/share/omarchy")),
@@ -40,12 +40,19 @@ for m in cfg["modules"]:
     elif isinstance(m, dict) and "keyColor" in m and colour:
         m["keyColor"] = colour
 
-tag = "Craft. Culture. Code."
-cfg["modules"].append({"type": "custom",
-                       "format": ESC + "[90m" + " " * ((54 - len(tag)) // 2) + tag})
+def footer(text, colour="90"):
+    """One centred line in the 54-wide box the section headers use."""
+    return {"type": "custom",
+            "format": ESC + "[" + colour + "m" + " " * max(0, (54 - len(text)) // 2) + text}
+
+# BRONZE is the ANSI name; the escape is its code, so the link picks up the
+# active theme's accent the same way the section keys do.
+cfg["modules"].append(footer("Craft. Culture. Code."))
+cfg["modules"].append(footer("gand.tr", "34"))
 cfg["modules"].append("break")
 
-path = os.path.expanduser("~/.config/fastfetch/config.jsonc")
+path = (sys.argv[1] if len(sys.argv) > 1
+        else os.path.expanduser("~/.config/fastfetch/config.jsonc"))
 with open(path, "w", encoding="utf-8") as f:
     f.write("// Gand — fastfetch / Omarchy About.\n"
             "// Logo: ~/.config/omarchy/branding/about.txt (the gand.tr sigil).\n"
