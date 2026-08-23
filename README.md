@@ -88,62 +88,60 @@ its illegibility is the point, so the About logo, the screensaver and the
 Plymouth strip are all the logo alone. The screensaver's one line of text is
 `IN HOC SIGNO VINCES` — the band's own first demo, 1995.
 
-## Animated fog
+## Animated backdrop
 
-Pagan's wallpapers can drift. `shell/gand.fog` is a small Quickshell plugin that
-lays slowly moving fog over the wallpaper, ported from pagan.tr's own `fog.css`
-— same plates, same timings.
+`shell/gand.backdrop` is a small Quickshell plugin that animates plates over the
+wallpaper. A theme opts in by shipping a `backdrop/` directory: the plates, plus
+a `backdrop.json` naming a profile, an intensity and a speed. Themes without one
+cost nothing — the layer model stays empty and no animation is created.
 
-A theme opts in by shipping a `fog/` directory: the plates, plus a `fog.json`
-naming a profile and an intensity. Themes without one cost nothing, because the
-layer model stays empty and no animation is ever created. Only Pagan ships one
-today; drop a `fog/` into any other theme and it picks it up.
+Two kinds of motion, because the two families want different things:
 
-```
-pagan/themes/pagan-dark/fog/{fog1.png,fog2.png,fog.json}   profile "fog",  3 layers
-pagan/themes/pagan-light/fog/{...}                          profile "mist", 2 layers
-```
+| Profile | Kind | Used by |
+|---|---|---|
+| `fog` | drift, 3 layers | Pagan Dark |
+| `mist` | drift, 2 layers, inverted plates | Pagan Light |
+| `orrery` | spin, 3 rings | all three Gand themes |
 
-Two details worth keeping:
+**drift** slides two copies of each plate sideways by exactly one copy width, so
+the wrap is seamless. Ported from pagan.tr's `fog.css`: movement and opacity run
+on deliberately unrelated periods (15s/13s against 10s/21s), and that beat is
+what reads as swirling rather than sliding.
 
-- **Movement and opacity run on unrelated periods** (15s/13s against 10s/21s).
-  That beat is what reads as swirling rather than sliding — matching the periods
-  would just look like a sheet moving sideways.
-- **The light profile's plates ship pre-inverted**, so its fog is dark rather
-  than luminous. White fog over a white ground is invisible; the site solves the
-  same problem with `filter: invert(1)`, and doing it in the plate means no
-  runtime shader. The plates also carry an alpha channel taken from their own
-  luminance, so only the fog draws — an opaque plate would veil the whole frame
-  and wash the logo back out.
+**spin** rotates plates about the screen centre at different rates in opposing
+directions. Gand's mark is an astronomical device — a serif G inside a ticked
+ring with laurel, crescents and dotted orbits — so its backdrop turns rather
+than drifts. `gen_orrery.py` draws three concentric rings to match: a ticked
+ring, a dotted orbit carrying eight four-point stars, and a hairline ring with
+crescents at the poles. Periods are 7, 5 and 9 minutes per revolution. An orrery
+that visibly turns is a fidget; this should only be noticeable if you sit and
+watch it.
 
-It is **not** a fork of `omarchy.background`. It draws its own surface on
-`WlrLayer.Bottom` — above the wallpaper, below ordinary windows — masked to an
-empty input region so clicks fall through as usual. That way the stock
-background renderer keeps updating normally, and a mistake here cannot leave the
-desktop black.
-
-**Dark asks for far more mark contrast than light** (6.5:1 against 3.4:1), and
-gets less fog (0.14 against 0.20). An equal ratio is not an equal read: light
-puts a dark mark at ~105 on a ~200 ground, a wide absolute separation, while
-dark puts a mid-grey at ~139 on ~62 — and luminous fog lifts that ground from
-37, halving the separation the mark had before the fog existed. Measured on
-screen across a fog cycle, dark now holds 5.6–6.0:1 and light 3.3–3.4:1.
-
-**Fog intensity is 0.20/0.14, not the site's values.** pagan.tr's fog sits over a small
-hero; scaled to a 4K wallpaper the same opacities produce a wall of cloud that
-swallows the logo. Measured against real captures, the mark falls from 3.72:1
-with no fog to 2.28:1 at 0.55 — 0.20 keeps the drift and leaves the mark at
-~3.4:1. Change it live:
+Both are tunable live, without touching QML:
 
 ```sh
-$EDITOR ~/.config/omarchy/themes/pagan-dark/fog/fog.json
-omarchy-shell fog refresh
+$EDITOR ~/.config/omarchy/themes/gand-earth/backdrop/backdrop.json
+omarchy-shell backdrop refresh
 ```
 
-Turn it off with `omarchy plugin disable gand.fog`, or skip it at install with
-`--no-fog`. Cost while the desktop is covered measured at 0.0% CPU: Hyprland
-withholds frame callbacks from an occluded surface, so it idles rather than
-animating behind your windows.
+`intensity` is the master opacity; `speed` multiplies the rate (2.0 is twice as
+fast, 0.5 half). Pagan's intensity is 0.20/0.14 rather than the site's values:
+`fog.css` is tuned for a small hero, and at 4K the same opacities produce a wall
+of cloud that swallows the mark — measured, it fell from 3.72:1 to 2.28:1.
+
+Turn it off with `omarchy plugin disable gand.backdrop`, or skip it at install
+with `--no-backdrop`. Cost while the desktop is covered measured at 0.0% CPU:
+Hyprland withholds frame callbacks from an occluded surface, so it idles rather
+than animating behind your windows.
+
+Two things that bit, both worth keeping in mind when editing the QML:
+
+- A `NumberAnimation on x` claims the property as a value source *even while
+  stopped*, destroying any binding on it. Drift animates a separate `driftX`
+  so spin layers keep their centring binding.
+- Escaped quotes inside a QML string collapse. The resolver's `jq` filters are
+  passed bare (`jq -r .speed`) for that reason; `jq -r ".speed // 1"` silently
+  became `.speed // 1` unquoted and fell back on every read.
 
 ## Pagan Old
 

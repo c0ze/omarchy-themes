@@ -6,7 +6,7 @@
 #   ./install.sh commit                 # just this family
 #   ./install.sh commit --theme evening # ...and switch to it
 #   ./install.sh --no-branding          # themes only; leave About/fastfetch alone
-#   ./install.sh --no-fog               # skip the animated-fog shell plugin
+#   ./install.sh --no-backdrop          # skip the animated-backdrop shell plugin
 #
 # Themes from every family coexist in the theme list. Branding does not:
 # Omarchy has one About logo, one screensaver panel and one user fastfetch
@@ -40,7 +40,7 @@ while (($# > 0)); do
     }
     ;;
   --no-branding) want_branding=0 ;;
-  --no-fog) want_fog=0 ;;
+  --no-backdrop) want_fog=0 ;;
   -h | --help)
     sed -n '3,19p' "$BASH_SOURCE" | sed 's/^# \?//'
     exit 0
@@ -112,16 +112,23 @@ if ((want_branding)); then
   echo "hook: theme-set/10-branding-family"
 fi
 
-# The fog plugin only ever draws for a theme that ships a fog/ directory, so
-# installing it is inert for the rest. Disable it any time with:
-#   omarchy plugin disable gand.fog
-if ((want_fog)) && [[ -d $SRC/shell/gand.fog ]]; then
-  dest="$HOME/.config/omarchy/plugins/gand.fog"
+# The backdrop plugin only ever draws for a theme that ships a backdrop/
+# directory, so installing it is inert for the rest. Disable it any time with:
+#   omarchy plugin disable gand.backdrop
+if ((want_fog)) && [[ -d $SRC/shell/gand.backdrop ]]; then
+  # gand.fog was this plugin's name while it only did fog. Retire it, or both
+  # would run and draw two stacked layer surfaces.
+  if [[ -d $HOME/.config/omarchy/plugins/gand.fog ]]; then
+    omarchy plugin remove gand.fog --yes >/dev/null 2>&1 || true
+    rm -rf "$HOME/.config/omarchy/plugins/gand.fog"
+    echo "  retired gand.fog (superseded by gand.backdrop)"
+  fi
+  dest="$HOME/.config/omarchy/plugins/gand.backdrop"
   mkdir -p "$dest"
-  cp -a "$SRC/shell/gand.fog/." "$dest/"
+  cp -a "$SRC/shell/gand.backdrop/." "$dest/"
   omarchy-shell shell rescanPlugins >/dev/null 2>&1 || true
-  omarchy plugin enable gand.fog >/dev/null 2>&1 || true
-  echo "plugin: gand.fog (animated fog)"
+  omarchy plugin enable gand.backdrop >/dev/null 2>&1 || true
+  echo "plugin: gand.backdrop (animated backdrop)"
 fi
 
 if [[ -n $apply_theme ]]; then

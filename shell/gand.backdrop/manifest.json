@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "gand.backdrop",
+  "name": "Animated backdrop",
+  "version": "2.0.0",
+  "author": "Arda Karaduman",
+  "description": "Drifting or turning plates over the wallpaper, for themes that ship them",
+  "kinds": [
+    "service"
+  ],
+  "entryPoints": {
+    "service": "Backdrop.qml"
+  }
+}

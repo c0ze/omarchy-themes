@@ -171,7 +171,7 @@ def save(arr, path):
     print("  ->", os.path.basename(path), f"{os.path.getsize(path)//1024}K")
 
 
-# Fog plates for the animated background (see the shell plugin under shell/).
+# Backdrop plates for the animated background (shell/gand.backdrop).
 # The site's plates are opaque black-and-white, which works there because they
 # sit on a black hero. Composited over a wallpaper they would veil the whole
 # frame -- and on the light theme that would wash the logo back out -- so give
@@ -184,7 +184,7 @@ FOG_INK = {"dark": "#DCE8F0", "light": "#39424C"}
 def write_fog_plates(out_root):
     for suffix, ink in FOG_INK.items():
         name = f"{VARIANT['prefix']}-{suffix}"
-        d = os.path.join(out_root, name, "fog")
+        d = os.path.join(out_root, name, "backdrop")
         os.makedirs(d, exist_ok=True)
         for src in FOG:
             plate = Image.open(src).convert("L")
@@ -199,10 +199,10 @@ def write_fog_plates(out_root):
         # the mark drops from 3.72:1 to 2.28:1 at 0.55). 0.20 keeps the drift
         # while leaving the mark essentially untouched at ~3.4:1.
         intensity = 0.14 if suffix == "dark" else 0.20
-        with open(os.path.join(d, "fog.json"), "w") as f:
-            json.dump({"profile": profile, "intensity": intensity}, f, indent=2)
+        with open(os.path.join(d, "backdrop.json"), "w") as f:
+            json.dump({"profile": profile, "intensity": intensity, "speed": 1.0}, f, indent=2)
             f.write("\n")
-        print(f"  -> {name}/fog ({profile})")
+        print(f"  -> {name}/backdrop ({profile})")
 
 
 def main():
