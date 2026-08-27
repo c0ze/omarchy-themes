@@ -25,14 +25,26 @@ cd ~/projects/gand/omarchy-themes
 `omarchy theme install <url>` will *not* work on this repo: it clones the whole
 repo into `~/.config/omarchy/themes/<repo-basename>` and treats it as a single
 theme. That command wants one repo per theme with `colors.toml` at the root; use
-`install.sh`.
+`install.sh` here.
 
-That is also why none of these are on
-[omarchy.org/themes](https://omarchy.org/themes) yet. Every theme in that
-directory is its own repository, because that is the unit the installer
-understands. Each family directory here already has the right shape — a theme
-folder with `colors.toml`, `backgrounds/`, `icons.theme` and `neovim.lua` — it
-just sits one level down. Splitting any of them out is a copy, not a rewrite.
+That one-repo-per-theme shape is also what
+[omarchy.org/themes](https://omarchy.org/themes) lists. The split-out repos —
+exported from here with `tools/split-theme.sh`, so a copy, not a rewrite:
+
+| Theme | Repo |
+|---|---|
+| Commit Late Night | [c0ze/omarchy-commit-theme](https://github.com/c0ze/omarchy-commit-theme) |
+| Commit Evening | [c0ze/omarchy-commit-evening-theme](https://github.com/c0ze/omarchy-commit-evening-theme) |
+| Commit Morning | [c0ze/omarchy-commit-morning-theme](https://github.com/c0ze/omarchy-commit-morning-theme) |
+| Gand Earth | [c0ze/omarchy-gand-theme](https://github.com/c0ze/omarchy-gand-theme) |
+| Gand Dark | [c0ze/omarchy-gand-dark-theme](https://github.com/c0ze/omarchy-gand-dark-theme) |
+| Gand Light | [c0ze/omarchy-gand-light-theme](https://github.com/c0ze/omarchy-gand-light-theme) |
+| Pagan Dark | [c0ze/omarchy-pagan-theme](https://github.com/c0ze/omarchy-pagan-theme) |
+| Pagan Light | [c0ze/omarchy-pagan-light-theme](https://github.com/c0ze/omarchy-pagan-light-theme) |
+
+Commit Late Night, Gand Earth and Pagan Dark are listed on
+[omarchy.org/themes](https://omarchy.org/themes); the rest install from their
+repos the same way.
 
 ## Gand
 
