@@ -21,7 +21,7 @@ MONO = ("/usr/share/fonts/TTF/DejaVuSansMono-Bold.ttf",
 UNLOCK = {
     "commit-late-night": "#7CFFB2",
     "commit-evening": "#FFCE86",
-    "commit-morning": "#0F8A4B",
+    "commit-morning": "#00793B",
 }
 AMBER = "#FFB454"
 

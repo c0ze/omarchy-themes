@@ -7,7 +7,7 @@ mode = "dark"
 
 accent = "#FFB454"
 selection = "#2A2214"
-muted = "#5C4A2C"
+muted = "#866f4c"
 
 background = "#12100A"
 dark_background = "#0D0B07"
@@ -26,7 +26,7 @@ green = "#5AF78E"
 cyan = "#9AEDFE"
 blue = "#57C7FF"
 magenta = "#FF6AC1"
-brown = "#7A5A30"
+brown = "#9e7948"
 
 bright_red = "#FF8A85"
 bright_yellow = "#FAFFC8"
