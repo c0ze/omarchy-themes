@@ -62,9 +62,16 @@ Mapped 1:1 to the three themes on the site.
 | **Gand Light** | `#f0ebe1` | `#7a4f30` | `[data-theme="light"]` — warm vellum |
 
 The ANSI palette is built from the site's three accents: bronze staff (*gandr*)
-as `blue`/`accent`, patina sage as `green`, balbal stone grey as `cyan`, plus an
-ember red and heather magenta the site does not define. Every colour clears
-3.4:1 on its background. Wallpapers: `1-sigil`, `2-ring`, `3-vellum`.
+as `accent`, patina sage as `green`, balbal stone grey as `blue` and `cyan`,
+plus an ember red and heather magenta the site does not define. Wallpapers:
+`1-sigil`, `2-ring`, `3-vellum`.
+
+`blue` used to *be* the bronze accent, which meant function names, numbers and
+keywords all landed on one warm hue and code read as one colour. It now comes
+off the balbal stone with enough chroma to tell itself apart, and `cyan` turns
+the same stone toward verdigris. Every ANSI slot clears 4.5:1 on its
+background — `tools/palette_check.py` is the report, `tools/code_swatch.py`
+renders a file through a palette without switching the live theme.
 
 ## Commit!!!
 
@@ -84,7 +91,7 @@ are the game's own Commit Slots, the mechanic the whole sim runs on.
 |---|---|---|---|
 | **Commit Late Night** | `#0B0F14` | `#5AF78E` | the shipped palette: phosphor green on a cold CRT ground |
 | **Commit Evening** | `#12100A` | `#FFB454` | the other classic phosphor; the amber of the `!!!` promoted to body text |
-| **Commit Morning** | `#EEF1F5` | `#0F8A4B` | the CRT ground inverted into ink on paper |
+| **Commit Morning** | `#EEF1F5` | `#00793B` | the CRT ground inverted into ink on paper |
 
 Accents across all three are the game's Snazzy-family ANSI set. Wallpapers:
 `1-pulse` (the Commit Pulse bar, zone colours straight from `ZONE_COLORS`),
@@ -137,14 +144,17 @@ wallpaper. A theme opts in by shipping a `backdrop/` directory: the plates, plus
 a `backdrop.json` naming a profile, an intensity and a speed. Themes without one
 cost nothing — the layer model stays empty and no animation is created.
 
-Two kinds of motion, because the two families want different things:
+Four kinds of motion, because each family wants a different one:
 
 | Profile | Kind | Used by |
 |---|---|---|
 | `fog` | drift, 3 layers | Pagan Dark |
 | `mist` | drift, 2 layers, inverted plates | Pagan Light |
 | `orrery` | spin, 3 rings | all three Gand themes |
-| `pulse` | sweep, 1 cursor | all three Commit themes |
+| `pulse` | rain × 3 behind sweep × 1 | all three Commit themes |
+
+`kind` is a property of the profile, but a layer may override it: `pulse` is the
+one profile that mixes two.
 
 **drift** slides two copies of each plate sideways by exactly one copy width, so
 the wrap is seamless. Ported from pagan.tr's `fog.css`: movement and opacity run
@@ -170,7 +180,23 @@ cursor was removed once the live one existed — two cursors on one bar read as 
 mistake. A full there-and-back is 18s: the game's cursor is frantic by design,
 and a backdrop that frantic would be unusable.
 
-All three are tunable live, without touching QML:
+**rain** falls: two copies of a plate stacked vertically, scrolled by exactly
+one screen height so the wrap is seamless — drift turned through ninety degrees.
+Commit's glyph waterfall runs three of them behind the cursor. `gen_rain.py`
+hands each plate one third of the columns (0, 3, 6… on the first, 1, 4, 7… on
+the second) and the shell falls them at 31s, 43s and 57s per screen, so
+neighbouring columns never descend together and the three sheets never re-align
+into one visible front. A column's brightness is a function of `(row - phase)
+mod period` and every period divides the 40 rows, so what leaves the bottom is
+what arrives at the top. Glyphs are half-width katakana mirrored as the film's
+are, salted with digits that are not — a mirrored numeral just reads as a broken
+glyph. They do not re-roll as they fall: the plate is a static image the shell
+translates, trading the flicker for one texture and no per-frame work. Ink is
+per theme — phosphor green under white heads on Late Night, amber under cream on
+Evening, and on Morning the CRT ground becomes the ink, exactly as the cursor
+does, because pale rain on pale paper would not be there at all.
+
+All four are tunable live, without touching QML:
 
 ```sh
 $EDITOR ~/.config/omarchy/themes/gand-earth/backdrop/backdrop.json
@@ -178,7 +204,10 @@ omarchy-shell backdrop refresh
 ```
 
 `intensity` is the master opacity; `speed` multiplies the rate (2.0 is twice as
-fast, 0.5 half). Pagan's intensity is 0.20/0.14 rather than the site's values:
+fast, 0.5 half). Commit's is 1.0, because it covers every layer alike and the
+cursor is meant to be a hard line, not a ghost of one — the rain carries its own
+dimming in the plate alphas instead. Pagan's is 0.20/0.14 rather than the site's
+values:
 `fog.css` is tuned for a small hero, and at 4K the same opacities produce a wall
 of cloud that swallows the mark — measured, it fell from 3.72:1 to 2.28:1.
 
