@@ -10,7 +10,7 @@ import qs.Commons
 // backdrop.json naming a profile and an intensity. Themes without one cost
 // nothing at all: the layer model stays empty and no animation is created.
 //
-// Two kinds of motion, because two families want different things:
+// Four kinds of motion, because each family wants a different one:
 //
 //   drift  plates slide sideways, two copies each so the wrap is seamless.
 //          Pagan's fog and mist -- ported from pagan.tr's fog.css, movement and
@@ -24,6 +24,12 @@ import qs.Commons
 //          across the bar. The plate shares the wallpapers' 16:9 geometry and
 //          renders the same way, so the cursor tracks the bar baked into
 //          1-pulse rather than floating free of it.
+//   rain   plates fall, two copies stacked so the wrap is seamless. Commit's
+//          glyph waterfall behind the cursor: three plates holding one third
+//          of the columns each, so neighbouring columns fall at three rates.
+//
+// `kind` is a property of the profile, but a layer may override it -- Commit
+// needs rain and sweep in the same backdrop.
 //
 // This is a plugin of its own rather than a fork of omarchy.background, so the
 // stock renderer keeps updating normally and a mistake here cannot leave the
@@ -59,8 +65,19 @@ Item {
       kind: "sweep",
       // span is the fraction of the displayed wallpaper width to cross: the
       // bar occupies the middle 0.66, matching gen_commit_bg.py.
+      //
+      // The cursor does not breathe: the game draws a hard line and a stop is
+      // a thing you aim at. Only the rain cycles.
+      //
+      // The rain falls behind the cursor: plates 1..3 are gen_rain.py's a/b/c,
+      // one third of the columns each. Their move times are deliberately not
+      // multiples of one another, so the three sheets never re-align into a
+      // single visible front.
       layers: [
-        { plate: 0, span: 0.66, period: 18000, cycle: 90000, stops: [0.85, 1.0, 0.85], at: [0, 0.4, 0.7] }
+        { plate: 1, kind: "rain", move: 31000, cycle: 41000, stops: [0.62, 0.85, 0.70], at: [0, 0.35, 0.70] },
+        { plate: 2, kind: "rain", move: 43000, cycle: 33000, stops: [0.85, 0.60, 0.75], at: [0, 0.30, 0.65] },
+        { plate: 3, kind: "rain", move: 57000, cycle: 47000, stops: [0.55, 0.80, 0.62], at: [0, 0.40, 0.75] },
+        { plate: 0, span: 0.66, period: 18000, cycle: 90000, stops: [1.0], at: [0] }
       ]
     },
     "orrery": {
@@ -83,7 +100,7 @@ Item {
       var entry = {}
       for (var k in layer) entry[k] = layer[k]
       entry.src = plates[layer.plate]
-      entry.kind = spec.kind
+      entry.kind = layer.kind || spec.kind
       // speed > 1 is faster; guard against a zero or negative in the json.
       var rate = speed > 0 ? speed : 1
       if (entry.move) entry.move = Math.round(entry.move / rate)
@@ -219,20 +236,23 @@ Item {
             // destroy the centring binding that spin layers need.
             property real driftX: 0
             // A separate property per motion: QML allows only one value source
-            // per property, so drift and sweep cannot both animate driftX.
+            // per property, so drift, sweep and rain cannot share one.
             property real sweepX: 0
+            property real fallY: 0
 
             readonly property bool drift: modelData.kind === "drift"
             readonly property bool sweep: modelData.kind === "sweep"
-            readonly property bool flat: drift || sweep
+            readonly property bool rain: modelData.kind === "rain"
+            readonly property bool flat: drift || sweep || rain
 
-            // Drift lays two copies side by side and slides one width; spin
-            // squares up on the screen centre and turns.
+            // Drift lays two copies side by side and slides one width, rain
+            // stacks them and falls one height; spin squares up on the screen
+            // centre and turns.
             width: flat ? (drift ? panel.width * 2 : panel.width)
                         : panel.side * (modelData.scale || 1)
-            height: flat ? panel.height : width
-            x: drift ? driftX : (sweep ? sweepX : (panel.width - width) / 2)
-            y: flat ? 0 : (panel.height - height) / 2
+            height: rain ? panel.height * 2 : (flat ? panel.height : width)
+            x: drift ? driftX : (sweep ? sweepX : (rain ? 0 : (panel.width - width) / 2))
+            y: rain ? fallY : (flat ? 0 : (panel.height - height) / 2)
 
             opacity: root.opacityAt(modelData.stops, modelData.at,
                                     (cyclePhase + modelData.phase) % 1)
@@ -255,14 +275,15 @@ Item {
               mipmap: true
             }
 
-            // Second copy, drift only: it arrives exactly where the first
-            // started, so the wrap is seamless.
+            // Second copy, for the wrapping kinds: it arrives exactly where
+            // the first started, so the seam never shows.
             Image {
-              visible: layer.drift
-              x: panel.width
+              visible: layer.drift || layer.rain
+              x: layer.drift ? panel.width : 0
+              y: layer.rain ? panel.height : 0
               width: panel.width
               height: panel.height
-              source: layer.drift ? layer.modelData.src : ""
+              source: (layer.drift || layer.rain) ? layer.modelData.src : ""
               fillMode: Image.PreserveAspectCrop
               asynchronous: true
               cache: true
@@ -275,6 +296,18 @@ Item {
               loops: Animation.Infinite
               from: 0
               to: -panel.width
+              duration: layer.modelData.move || 1
+              easing.type: Easing.Linear
+            }
+
+            // The stacked copy sits one screen below, so falling from -height
+            // to 0 hands the screen from the lower copy to the upper one and
+            // starts over on the same frame.
+            NumberAnimation on fallY {
+              running: panel.visible && layer.rain
+              loops: Animation.Infinite
+              from: -panel.height
+              to: 0
               duration: layer.modelData.move || 1
               easing.type: Easing.Linear
             }
@@ -299,7 +332,7 @@ Item {
             }
 
             NumberAnimation on spin {
-              running: panel.visible && !layer.drift
+              running: panel.visible && !layer.flat
               loops: Animation.Infinite
               from: 0
               to: 360 * (layer.modelData.dir || 1)

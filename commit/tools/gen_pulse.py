@@ -33,7 +33,11 @@ INK = {
     "commit-evening": "#FFF4E0",
     "commit-morning": "#0B0F14",
 }
-INTENSITY = {"commit-late-night": 0.55, "commit-evening": 0.50, "commit-morning": 0.45}
+# 1.0, because intensity is a group opacity over every layer in the backdrop
+# and the cursor is meant to be solid -- the game draws a hard white line, not a
+# ghost of one. The rain carries its own dimming in the plate alphas instead
+# (gen_rain.py), so lowering this still fades the whole backdrop as before.
+INTENSITY = {"commit-late-night": 1.0, "commit-evening": 1.0, "commit-morning": 1.0}
 
 # Seconds for a full there-and-back. The game's cursor is frantic by design;
 # a backdrop that frantic would be unusable, so this is a slow scan. Tunable

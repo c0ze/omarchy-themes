@@ -124,11 +124,19 @@ if ((want_fog)) && [[ -d $SRC/shell/gand.backdrop ]]; then
     echo "  retired gand.fog (superseded by gand.backdrop)"
   fi
   dest="$HOME/.config/omarchy/plugins/gand.backdrop"
+  changed=1
+  [[ -d $dest ]] && diff -rq "$SRC/shell/gand.backdrop" "$dest" >/dev/null 2>&1 && changed=0
   mkdir -p "$dest"
   cp -a "$SRC/shell/gand.backdrop/." "$dest/"
   omarchy-shell shell rescanPlugins >/dev/null 2>&1 || true
   omarchy plugin enable gand.backdrop >/dev/null 2>&1 || true
   echo "plugin: gand.backdrop (animated backdrop)"
+  # rescanPlugins finds a *new* plugin but keeps running the QML it already
+  # loaded, so an edit to Backdrop.qml is invisible until the shell restarts.
+  if ((changed)); then
+    omarchy restart shell >/dev/null 2>&1 || true
+    echo "  shell restarted to pick up the plugin"
+  fi
 fi
 
 if [[ -n $apply_theme ]]; then

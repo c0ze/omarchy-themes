@@ -62,6 +62,9 @@ ZONES = [
     ("red", "#FF5C57", 0.20), ("red", "#FF5C57", 0.24),
 ]
 
+# `dim` is the wallpaper's own faint-line ink for the commit graph. It started life as each palette's `muted` and has since parted company
+# with it: muted was lifted to carry bat's line numbers, which is far too bright
+# for a line that is meant to be barely there.
 THEMES = {
     "commit-late-night": dict(
         bg="#0B0F14", glow="#18232F", edge="#030507",
@@ -71,7 +74,7 @@ THEMES = {
         ink="#FFB454", dim="#5C4A2C", scan=0.30, grain=2.6, art=1.0),
     "commit-morning": dict(
         bg="#EEF1F5", glow="#FFFFFF", edge="#D1D9E3",
-        ink="#0F8A4B", dim="#8797A8", scan=0.10, grain=1.8, art=0.85),
+        ink="#00793B", dim="#8797A8", scan=0.10, grain=1.8, art=0.85),
 }
 
 
@@ -80,19 +83,6 @@ def ground(t, cx, cy, radius, power):
     g = radial(cx, cy, radius, power)
     canvas = edge + (glow - edge) * g[..., None]
     return canvas * 0.55 + bg * 0.45
-
-
-def pulse_lattice(d, w, h):
-    """The faint diagonal graph lines the Pulse screen draws behind the bar."""
-    stroke = max(1, int(w * 0.0012))
-    for band in (0.17, 0.78):
-        y = band * h
-        span = 0.16 * h
-        for k in range(-1, 5):
-            x = (0.10 + k * 0.20) * w
-            d.line([(x, y), (x + 0.10 * w, y - span), (x + 0.20 * w, y)],
-                   fill=255, width=stroke)
-        d.line([(0, y), (w, y)], fill=255, width=stroke)
 
 
 def pulse_bar(d, w, h):
@@ -161,10 +151,14 @@ def main():
         canvas = ground(t, W * 0.5, H * 0.50, W * 0.85, 1.3)
         canvas = layer(canvas, radial(W * 0.5, H * 0.50, W * 0.42, 2.0), ink,
                        0.05 * t["art"])
+        # Solid, not a wash. The bar shares the screen with the glyph rain now,
+        # and at the old 0.34 the rain read straight through the zones.
         for colour, cov in pulse_zones():
-            canvas = layer(canvas, cov, hexrgb(colour), 0.34 * t["art"])
-        canvas = layer(canvas, draw(pulse_lattice), dim, 0.40 * t["art"])
-        canvas = layer(canvas, draw(pulse_bar), ink, 0.42 * t["art"])
+            canvas = layer(canvas, cov, hexrgb(colour), 0.72 * t["art"])
+        # Nothing between the ground and the bar. The Pulse screen's diagonal
+        # lattice used to run above and below it, but the glyph rain occupies
+        # that space now and two backgrounds fighting is one too many.
+        canvas = layer(canvas, draw(pulse_bar), ink, 0.80 * t["art"])
         canvas = canvas * scanlines(t["scan"]) + grain(t["grain"], 3)
         save(canvas, os.path.join(d, wp("1-pulse", name, "commit")))
 

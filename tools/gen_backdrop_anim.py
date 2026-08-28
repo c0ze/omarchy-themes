@@ -41,7 +41,10 @@ PROFILES = {
     "pulse": {
         "kind": "sweep",
         "layers": [
-            {"plate": 0, "span": 0.66, "period": 18000, "cycle": 90000, "stops": [0.85, 1.0, 0.85], "at": [0, 0.4, 0.7]},
+            {"plate": 1, "kind": "rain", "move": 31000, "cycle": 41000, "stops": [0.62, 0.85, 0.70], "at": [0, 0.35, 0.70]},
+            {"plate": 2, "kind": "rain", "move": 43000, "cycle": 33000, "stops": [0.85, 0.60, 0.75], "at": [0, 0.30, 0.65]},
+            {"plate": 3, "kind": "rain", "move": 57000, "cycle": 47000, "stops": [0.55, 0.80, 0.62], "at": [0, 0.40, 0.75]},
+            {"plate": 0, "span": 0.66, "period": 18000, "cycle": 90000, "stops": [1.0], "at": [0]},
         ],
     },
     "orrery": {
@@ -113,6 +116,15 @@ def render_frame(base, prepared, layers, t_ms):
             frame_layer.paste(prep, (0, 0))
             frame_layer.paste(prep, (W, 0))
             overlay.alpha_composite(with_opacity(frame_layer, opacity).crop((round(-x), 0, round(-x) + W, H)))
+        elif layer["kind"] == "rain":
+            # The tall stack scrolls upward past the viewport, so the glyphs
+            # fall. Cropping at H when the animation starts means the lower
+            # copy is on screen first and the seam has already passed.
+            y = round(H - H * ((t_ms / layer["move"]) % 1))
+            frame_layer = Image.new("RGBA", (W, H * 2), (0, 0, 0, 0))
+            frame_layer.paste(prep, (0, 0))
+            frame_layer.paste(prep, (0, H))
+            overlay.alpha_composite(with_opacity(frame_layer, opacity).crop((0, y, W, y + H)))
         elif layer["kind"] == "sweep":
             half = layer["period"] / 2
             tt = (t_ms % layer["period"]) / half
@@ -153,7 +165,7 @@ def main():
         if layer["plate"] >= len(plates):
             continue
         entry = dict(layer)
-        entry["kind"] = spec["kind"]
+        entry["kind"] = layer.get("kind", spec["kind"])
         entry["phase"] = i / len(spec["layers"])
         if "move" in entry:
             entry["move"] = entry["move"] / speed
@@ -175,7 +187,7 @@ def main():
         else:
             prepared.append(cover(img, W, H))
 
-    sim = args.sim or {"pulse": 18, "fog": 20, "mist": 24, "orrery": 120}.get(profile, 20)
+    sim = args.sim or {"pulse": 36, "fog": 20, "mist": 24, "orrery": 120}.get(profile, 20)
     frames_n = CLIP_SECONDS * FPS
     frames = [render_frame(base, prepared, layers, sim * 1000 * i / frames_n) for i in range(frames_n)]
 
