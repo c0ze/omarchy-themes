@@ -25,6 +25,17 @@ blurb="${4:?one-line description}"
 theme=$(find "$SRC" -mindepth 3 -maxdepth 3 -type d -path "*/themes/$slug" | head -1)
 [[ -n $theme ]] || { echo "no such theme: $slug" >&2; exit 1; }
 
+# Every family is named after a project of mine, and the standalone repo should
+# say so out loud: the site is where the colours were read from.
+family=$(basename "$(dirname "$(dirname "$theme")")")
+case $family in
+  gand)      site="gand.tr";        source_line="the studio these colours were read from" ;;
+  commit)    site="commit.gand.tr"; source_line="the game these colours were read from" ;;
+  pagan)     site="pagan.tr";       source_line="the band these colours were read from" ;;
+  pagan-old) site="pagan.tr";       source_line="the same band, wearing its pre-2019 sigil" ;;
+  *) echo "no site mapped for family: $family" >&2; exit 1 ;;
+esac
+
 mkdir -p "$out"
 # Everything except the repo-only extras; colors.toml and friends land at root.
 cp -a "$theme/." "$out/"
@@ -36,6 +47,8 @@ cat >"$out/README.md" <<EOF
 # $name — an Omarchy theme
 
 $blurb
+
+**[$site](https://$site)** — $source_line.
 
 ![$name](preview.webp)
 
@@ -69,9 +82,10 @@ plugin that ships with the full set:
 
 ## Where the colours came from
 
-Not one of them was picked by eye. Every value is read out of the project this
-theme is named after. There is a [write-up](https://blog.arda.tr/blog/2026-08-23-ten-omarchy-themes/)
-and a [three-minute demo](https://youtu.be/2rXn40bUuC8) of all ten.
+Not one of them was picked by eye. Every value is read out of
+**[$site](https://$site)**, the project this theme is named after. There is a
+[write-up](https://blog.arda.tr/blog/2026-08-23-ten-omarchy-themes/) and a
+[three-minute demo](https://youtu.be/2rXn40bUuC8) of all ten.
 EOF
 
 echo "$name -> $out"
