@@ -21,6 +21,7 @@ cd ~/projects/gand/omarchy-themes
 | [`commit/`](commit) | [commit.gand.tr](https://commit.gand.tr) — the game | Commit Late Night · Commit Evening · Commit Morning |
 | [`pagan/`](pagan) | [pagan.tr](https://pagan.tr) — the band | Pagan Dark · Pagan Light |
 | [`pagan-old/`](pagan-old) | Pagan's pre-2019 sigil | Pagan Old Dark · Pagan Old Light |
+| [`forest/`](forest) | [arda.tr](https://arda.tr) — One Bit Forest | Forest Night · Forest Dusk · Forest Xerox |
 
 `omarchy theme install <url>` will *not* work on this repo: it clones the whole
 repo into `~/.config/omarchy/themes/<repo-basename>` and treats it as a single
@@ -137,6 +138,41 @@ its illegibility is the point, so the About logo, the screensaver and the
 Plymouth strip are all the logo alone. The screensaver's one line of text is
 `IN HOC SIGNO VINCES` — the band's own first demo, 1995.
 
+## Forest
+
+**[arda.tr](https://arda.tr)** — and blog.arda.tr, resume.arda.tr and
+ai.arda.tr, which share its design: **One Bit Forest**, a night spruce valley
+ordered-dithered to one bit, with one neon phosphor per site. arda.tr's is
+lichen. Everything pictorial on those sites is dithered live by `onebit.js`;
+here `forest/tools/onebit.py` ports the valley from it — the same rng, noise,
+spruce and ridge-top radio mast, seed 2004 — so the desktop and the hero are
+the same place.
+
+| Theme | background | accent | site source |
+|---|---|---|---|
+| **Forest Night** | `#060708` | `#c6ff3a` | `night`, the default: bone ink on near-black |
+| **Forest Dusk** | `#31352e` | `#c6ff3a` | none — the mid ground the site does not have |
+| **Forest Xerox** | `#efede6` | `#3f5f00` | `xerox`: the valley photocopied, printed as a positive |
+
+Neutrals are the site's tokens verbatim (`--bg`, `--surface`, `--fg`, `--fg-2`,
+`--signal`); Dusk is derived between them and still prints as a night, so its
+moon stays bright. The site has no hue but the signal, so the ANSI slots are
+pale inks by night and toner inks on Xerox, low in chroma, with `green` set to
+the lichen itself so the fastfetch keys and a terminal's green are the signal.
+
+Wallpapers are the scene at 640x360 — what `forest()` renders at on a 4K screen
+— enlarged 6x with nearest-neighbour and saved lossless (about 10 KiB each):
+`1-valley` (the site's hero, moon high on the right), `2-stars` (moonless, the
+Milky Way), `3-moonrise` (a full moon half behind the far ridge). All three
+share one valley and differ only in the sky, which is what lets one set of
+backdrop plates serve all three.
+
+The terminal art is a positive emblem rather than the dithered scene: dithered
+into braille, the dark spruces become gaps in a grey field and vanish. The
+Plymouth strip and the screensaver wordmark set `arda.tr` in a monospace
+rendered without antialiasing — pixel type, as an early Mac would draw it —
+after a block of signal, the site's own mark.
+
 ## Animated backdrop
 
 `shell/gand.backdrop` is a small Quickshell plugin that animates plates over the
@@ -152,6 +188,7 @@ Four kinds of motion, because each family wants a different one:
 | `mist` | drift, 2 layers, inverted plates | Pagan Light |
 | `orrery` | spin, 3 rings | all three Gand themes |
 | `pulse` | rain × 3 behind sweep × 1 | all three Commit themes |
+| `valley` | drift × 2 between still × 2, pixelated | all three Forest themes |
 
 `kind` is a property of the profile, but a layer may override it: `pulse` is the
 one profile that mixes two.
@@ -196,7 +233,21 @@ per theme — phosphor green under white heads on Late Night, amber under cream 
 Evening, and on Morning the CRT ground becomes the ink, exactly as the cursor
 does, because pale rain on pale paper would not be there at all.
 
-All four are tunable live, without touching QML:
+**valley** animates what the site animates on top of the valley, and leaves the
+valley itself still. Scrolling it in parallax, as the hero does, would need
+opaque moving strips: over the wallpaper's own trees they ghost (the far
+ridge's mast showed twice), and hiding the wallpaper under a sky plate would
+bury the desktop widgets that share the background layer. So two one-bit fog
+sheets drift through the site's fog bands at 300s and 210s per screen, and a
+**still** plate — a layer that does not move, only runs its opacity stops —
+lays an exact copy of the middle and near spruces over them, so the fog passes
+behind the trees. Fog is not in the wallpapers; with the plugin off the valley
+is clear. The mast light is a second still plate holding the mast top *unlit*:
+the wallpaper has it lit, the plate covers it for 60% of a 3s beat, and it
+blinks. `pixelated` draws the 640x360 plates unsmoothed, so each lands on the
+wallpaper's 6x6 grid instead of blurring to grey.
+
+All five are tunable live, without touching QML:
 
 ```sh
 $EDITOR ~/.config/omarchy/themes/gand-earth/backdrop/backdrop.json
@@ -216,11 +267,15 @@ with `--no-backdrop`. Cost while the desktop is covered measured at 0.0% CPU:
 Hyprland withholds frame callbacks from an occluded surface, so it idles rather
 than animating behind your windows.
 
-Two things that bit, both worth keeping in mind when editing the QML:
+Three things that bit, all worth keeping in mind when editing the QML:
 
 - A `NumberAnimation on x` claims the property as a value source *even while
   stopped*, destroying any binding on it. Drift animates a separate `driftX`
   so spin layers keep their centring binding.
+- A running animation keeps the `to` it started with. The layer surface is
+  only configured after it turns visible, so drift, rain and sweep started at
+  width 0 and animated from 0 to 0 forever: every drifting and falling
+  backdrop stood still until they were made to wait for `panel.width > 0`.
 - Escaped quotes inside a QML string collapse. The resolver's `jq` filters are
   passed bare (`jq -r .speed`) for that reason; `jq -r ".speed // 1"` silently
   became `.speed // 1` unquoted and fell back on every read.
@@ -343,11 +398,17 @@ commit/tools/gen_commit_fastfetch.py commit/fastfetch/config.jsonc
 pagan/tools/gen_pagan_assets.py   pagan/themes/ pagan/branding/
 pagan/tools/gen_pagan_bg.py       pagan/themes/
 pagan/tools/gen_pagan_fastfetch.py pagan/fastfetch/config.jsonc
+
+forest/tools/gen_forest_bg.py       forest/themes/        # ~1 min: pure-Python port
+forest/tools/gen_forest_assets.py   forest/themes/ forest/branding/
+forest/tools/gen_forest_fastfetch.py forest/fastfetch/config.jsonc
+tools/gen_backdrop_anim.py          forest/themes/forest-night
 ```
 
 Gand's generators read the logo from
 `~/projects/gand/gand.tr/public/assets/gand-logo-1024.webp` (`GAND_LOGO`
 overrides); Pagan's read the logo and fog from `~/projects/music/pagan/pagan.tr`
-(`PAGAN_SITE`); Commit's redraw the icon from scratch and need no source art. Needs
+(`PAGAN_SITE`); Commit's redraw the icon from scratch and need no source art; Forest's draw
+the valley from its seed and need nothing either. Needs
 `python-pillow`, `python-numpy` and ImageMagick. All are deterministic — a
 re-run reproduces the committed files byte for byte.

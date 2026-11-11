@@ -10,7 +10,7 @@ import qs.Commons
 // backdrop.json naming a profile and an intensity. Themes without one cost
 // nothing at all: the layer model stays empty and no animation is created.
 //
-// Four kinds of motion, because each family wants a different one:
+// Four kinds of motion, because each family wants a different one, plus none:
 //
 //   drift  plates slide sideways, two copies each so the wrap is seamless.
 //          Pagan's fog and mist -- ported from pagan.tr's fog.css, movement and
@@ -27,9 +27,15 @@ import qs.Commons
 //   rain   plates fall, two copies stacked so the wrap is seamless. Commit's
 //          glyph waterfall behind the cursor: three plates holding one third
 //          of the columns each, so neighbouring columns fall at three rates.
+//   still  a plate that does not move, only runs its opacity stops. Forest's
+//          blinking mast light, and the spruces its fog passes behind.
 //
 // `kind` is a property of the profile, but a layer may override it -- Commit
 // needs rain and sweep in the same backdrop.
+//
+// A `pixelated` profile draws its plates unsmoothed. Forest's plates are the
+// 640x360 one-bit scene itself, and a filtered upscale would blur every pixel
+// into grey; unfiltered, each lands on the same 6x6 block as the wallpaper.
 //
 // This is a plugin of its own rather than a fork of omarchy.background, so the
 // stock renderer keeps updating normally and a mistake here cannot leave the
@@ -87,6 +93,30 @@ Item {
         { plate: 1, period: 300000, dir: -1, scale: 1.00, cycle: 31000, stops: [0.90, 0.62, 0.80], at: [0, 0.30, 0.65] },
         { plate: 2, period: 540000, dir: 1, scale: 1.00, cycle: 39000, stops: [0.75, 0.95, 0.68], at: [0, 0.40, 0.75] }
       ]
+    },
+    // Forest: arda.tr's hero valley, whose fog drifts and whose mast light
+    // blinks. The valley itself holds still. Scrolling it would need opaque
+    // moving strips, which either ghost against the wallpaper's own trees or,
+    // once a sky plate hides those, bury the desktop widgets that share the
+    // background level.
+    //
+    // Fog is two one-bit sheets on the site's fog bands, at different rates so
+    // they never move as one. The last plate is a still copy of the middle and
+    // near spruces, identical to the wallpaper's, laid over the fog so it
+    // passes behind them as it does on the site.
+    //
+    // The beacon plate is the mast top *unlit*: the wallpaper has the light on,
+    // so it still shows with the plugin off, and the plate covers it for 60% of
+    // each beat. Stops at the same `at` make the step hard rather than a fade.
+    "valley": {
+      kind: "drift",
+      pixelated: true,
+      layers: [
+        { plate: 0, kind: "still", cycle: 3000, stops: [0.0, 0.0, 1.0, 1.0], at: [0, 0.4, 0.4, 1.0] },
+        { plate: 1, move: 300000, cycle: 60000, stops: [1.0], at: [0] },
+        { plate: 2, move: 210000, cycle: 60000, stops: [1.0], at: [0] },
+        { plate: 3, kind: "still", cycle: 60000, stops: [1.0], at: [0] }
+      ]
     }
   })
 
@@ -101,6 +131,7 @@ Item {
       for (var k in layer) entry[k] = layer[k]
       entry.src = plates[layer.plate]
       entry.kind = layer.kind || spec.kind
+      entry.pixelated = !!spec.pixelated
       // speed > 1 is faster; guard against a zero or negative in the json.
       var rate = speed > 0 ? speed : 1
       if (entry.move) entry.move = Math.round(entry.move / rate)
@@ -243,7 +274,8 @@ Item {
             readonly property bool drift: modelData.kind === "drift"
             readonly property bool sweep: modelData.kind === "sweep"
             readonly property bool rain: modelData.kind === "rain"
-            readonly property bool flat: drift || sweep || rain
+            readonly property bool still: modelData.kind === "still"
+            readonly property bool flat: drift || sweep || rain || still
 
             // Drift lays two copies side by side and slides one width, rain
             // stacks them and falls one height; spin squares up on the screen
@@ -271,8 +303,8 @@ Item {
               fillMode: layer.flat ? Image.PreserveAspectCrop : Image.PreserveAspectFit
               asynchronous: true
               cache: true
-              smooth: true
-              mipmap: true
+              smooth: !layer.modelData.pixelated
+              mipmap: !layer.modelData.pixelated
             }
 
             // Second copy, for the wrapping kinds: it arrives exactly where
@@ -287,12 +319,16 @@ Item {
               fillMode: Image.PreserveAspectCrop
               asynchronous: true
               cache: true
-              smooth: true
-              mipmap: true
+              smooth: !layer.modelData.pixelated
+              mipmap: !layer.modelData.pixelated
             }
 
+            // Every moving animation waits for the panel to have a size. A
+            // running animation keeps the `to` it started with, and the layer
+            // surface is only configured after it turns visible: started at
+            // once, drift ran from 0 to -0 forever and the fog stood still.
             NumberAnimation on driftX {
-              running: panel.visible && layer.drift
+              running: panel.visible && layer.drift && panel.width > 0
               loops: Animation.Infinite
               from: 0
               to: -panel.width
@@ -304,7 +340,7 @@ Item {
             // to 0 hands the screen from the lower copy to the upper one and
             // starts over on the same frame.
             NumberAnimation on fallY {
-              running: panel.visible && layer.rain
+              running: panel.visible && layer.rain && panel.height > 0
               loops: Animation.Infinite
               from: -panel.height
               to: 0
@@ -315,7 +351,7 @@ Item {
             // Ping-pong, not a wrap: the cursor reverses at each end of the
             // bar exactly as it does in game.
             SequentialAnimation on sweepX {
-              running: panel.visible && layer.sweep
+              running: panel.visible && layer.sweep && panel.width > 0
               loops: Animation.Infinite
               NumberAnimation {
                 from: 0

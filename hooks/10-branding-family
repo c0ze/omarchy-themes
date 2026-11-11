@@ -24,6 +24,7 @@ commit-*) family=commit ;;
 # pagan-old-* must come first: it would otherwise be swallowed by pagan-*
 pagan-old-*) family=pagan-old ;;
 pagan-*) family=pagan ;;
+forest-*) family=forest ;;
 *) exit 0 ;;
 esac
 

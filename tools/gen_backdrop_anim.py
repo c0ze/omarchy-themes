@@ -55,6 +55,16 @@ PROFILES = {
             {"plate": 2, "period": 540000, "dir": 1, "scale": 1.00, "cycle": 39000, "stops": [0.75, 0.95, 0.68], "at": [0, 0.40, 0.75]},
         ],
     },
+    "valley": {
+        "kind": "drift",
+        "pixelated": True,
+        "layers": [
+            {"plate": 0, "kind": "still", "cycle": 3000, "stops": [0.0, 0.0, 1.0, 1.0], "at": [0, 0.4, 0.4, 1.0]},
+            {"plate": 1, "move": 300000, "cycle": 60000, "stops": [1.0], "at": [0]},
+            {"plate": 2, "move": 210000, "cycle": 60000, "stops": [1.0], "at": [0]},
+            {"plate": 3, "kind": "still", "cycle": 60000, "stops": [1.0], "at": [0]},
+        ],
+    },
 }
 
 W, H = 960, 540
@@ -76,10 +86,10 @@ def opacity_at(stops, at, t):
     return stops[0]
 
 
-def cover(img, w, h):
+def cover(img, w, h, resample=Image.LANCZOS):
     """Image.PreserveAspectCrop."""
     scale = max(w / img.width, h / img.height)
-    img = img.resize((round(img.width * scale), round(img.height * scale)), Image.LANCZOS)
+    img = img.resize((round(img.width * scale), round(img.height * scale)), resample)
     x = (img.width - w) // 2
     y = (img.height - h) // 2
     return img.crop((x, y, x + w, y + h))
@@ -125,6 +135,8 @@ def render_frame(base, prepared, layers, t_ms):
             frame_layer.paste(prep, (0, 0))
             frame_layer.paste(prep, (0, H))
             overlay.alpha_composite(with_opacity(frame_layer, opacity).crop((0, y, W, y + H)))
+        elif layer["kind"] == "still":
+            overlay.alpha_composite(with_opacity(prep, opacity))
         elif layer["kind"] == "sweep":
             half = layer["period"] / 2
             tt = (t_ms % layer["period"]) / half
@@ -176,7 +188,17 @@ def main():
         raise SystemExit(f"{args.theme}: no layers (profile={profile}, plates={len(plates)})")
 
     wallpaper = sorted((args.theme / "backgrounds").glob("*.webp"))[0]
-    base = cover(Image.open(wallpaper).convert("RGBA"), W, H)
+    # A pixelated profile is drawn unsmoothed by the shell; LANCZOS would turn
+    # its one-bit plates to grey mush, and the wallpaper under them with it.
+    # Its clip is rendered at the plates' own size, losslessly: lossy webp on
+    # a dither pattern is both uglier and ten times larger.
+    resample = Image.LANCZOS
+    lossless = False
+    if spec.get("pixelated"):
+        global W, H
+        resample, lossless = Image.NEAREST, True
+        W, H = Image.open(sorted(backdrop.glob("*.png"))[0]).size
+    base = cover(Image.open(wallpaper).convert("RGBA"), W, H, resample)
 
     side = round(max(W, H) * 1.05)
     prepared = []
@@ -185,9 +207,9 @@ def main():
         if layer["kind"] == "spin":
             prepared.append(fit(img, round(side * layer.get("scale", 1))))
         else:
-            prepared.append(cover(img, W, H))
+            prepared.append(cover(img, W, H, resample))
 
-    sim = args.sim or {"pulse": 36, "fog": 20, "mist": 24, "orrery": 120}.get(profile, 20)
+    sim = args.sim or {"pulse": 36, "fog": 20, "mist": 24, "orrery": 120, "valley": 150}.get(profile, 20)
     frames_n = CLIP_SECONDS * FPS
     frames = [render_frame(base, prepared, layers, sim * 1000 * i / frames_n) for i in range(frames_n)]
 
@@ -199,7 +221,7 @@ def main():
 
     out = args.out or backdrop / "animation.webp"
     frames[0].save(out, save_all=True, append_images=frames[1:], duration=round(1000 / FPS),
-                   loop=0, quality=70, method=4)
+                   loop=0, quality=70, method=4, lossless=lossless)
     size_kb = out.stat().st_size / 1024
     print(f"{out}  {frames_n} frames, {sim:.0f}s simulated, {size_kb:.0f} KiB")
 
